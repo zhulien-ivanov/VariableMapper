@@ -10,34 +10,45 @@ namespace VariableMapper
     {
         public static void Main()
         {
+            const string dummyProperty = "width: 1;";
+
             string lessInputs = @"..\..\Inputs\";
             string lessInputsMapped = @"..\..\Inputs\Mapped\";
             string lessOutput = @"..\..\Outputs\";
+            string mappingsOutput = @"..\..\Outputs\VariableMappings\";
 
+            string selectorPattern = @"^[a-zA-Z0-9-_#>., :&*]+(?: {|,)$";
+            string closingSelectorPattern = @"\s*}$";
             string singleLineSelector = @"^[a-zA-Z0-9-_#>., :&*]+ {$";
             string multiLineSelector = @"^[a-zA-Z0-9-_#>., :&*]+,$";
+            
+            string cssSingleLineSelector = @"^([a-zA-Z0-9-_#>., :*]+) {$";
+            string cssMultiLineSelector = @"^([a-zA-Z0-9-_#>., :*]+,)$";            
 
-            string selectorPattern = @"^[a-zA-Z0-9-_#>., :&*]+( {|,)$";
-            string closingSelectorPattern = @"\s*}$";
             string propertyPattern = @"[a-zA-Z0-9-_]+: .*(@[a-zA-Z0-9-_]+).*;";
+            string cssPropertySelector = @"^\/\*(.*: .*(@[a-zA-Z0-9-_]+).*);\*\/$";
 
             string variablePattern = @"(@[a-zA-Z0-9-_]+): (.*);";
-            //string colorVariablePattern = @"(@[a-zA-Z0-9-_]+): .*(?:(@color_[a-zA-Z0-9-_]+)|(#[0-9a-fA-F]{3,})|(rgb[a]?[(].*[)])).*;";
-            string colorVariablePattern = @".*(?:(@color_[a-zA-Z0-9-_]+)|(#[0-9a-fA-F]{3,})|(rgb[a]?[(].*[)])).*";
 
-            var singleLineSelectorRegex = new Regex(singleLineSelector);
-            var multiLineSelectorRegex = new Regex(multiLineSelector);
+            string colorVariablePattern = @".*(?:(@color_[a-zA-Z0-9-_]+)|(#[0-9a-fA-F]{3,})|(rgb[a]?[(].*[)])).*";
 
             var selectorRegex = new Regex(selectorPattern);
             var closingSelectorRegex = new Regex(closingSelectorPattern);
+            var singleLineSelectorRegex = new Regex(singleLineSelector);
+            var multiLineSelectorRegex = new Regex(multiLineSelector);
+
+            var cssSingleLineSelectorRegex = new Regex(cssSingleLineSelector);
+            var cssMultiLineSelectorRegex = new Regex(cssMultiLineSelector);            
+            
             var propertyRegex = new Regex(propertyPattern);
+            var cssPropertyRegex = new Regex(cssPropertySelector);
 
             var variableRegex = new Regex(variablePattern);
             var colorVariableRegex = new Regex(colorVariablePattern);
 
             var directoryFiles = Directory.GetFiles(lessInputs);
 
-            string normalizedName;
+            string fileName;
 
             string line;
 
@@ -51,11 +62,11 @@ namespace VariableMapper
             // CREATE COLLECTION WITH FLAT VARIABLES STARTS
             var mappedVariables = new Dictionary<string, Dictionary<string, string>>();
 
-            foreach (var fileName in directoryFiles)
+            foreach (var filePath in directoryFiles)
             {
-                normalizedName = fileName.Substring(fileName.LastIndexOf("\\") + 1);
+                fileName = filePath.Substring(filePath.LastIndexOf("\\") + 1);
 
-                using (var sr = new StreamReader(fileName))
+                using (var sr = new StreamReader(filePath))
                 {
                     line = sr.ReadLine();
 
@@ -65,12 +76,12 @@ namespace VariableMapper
 
                         if (match.Success)
                         {
-                            if (!mappedVariables.ContainsKey(normalizedName))
+                            if (!mappedVariables.ContainsKey(fileName))
                             {
-                                mappedVariables[normalizedName] = new Dictionary<string, string>();
+                                mappedVariables[fileName] = new Dictionary<string, string>();
                             }
 
-                            mappedVariables[normalizedName].Add(match.Groups[1].Value, match.Groups[2].Value);
+                            mappedVariables[fileName].Add(match.Groups[1].Value, match.Groups[2].Value);
                         }
 
                         line = sr.ReadLine();
@@ -112,11 +123,11 @@ namespace VariableMapper
 
             string variableName;
             
-            foreach (var fileName in directoryFiles)
+            foreach (var filePath in directoryFiles)
             {
-                normalizedName = fileName.Substring(fileName.LastIndexOf("\\") + 1);
+                fileName = filePath.Substring(filePath.LastIndexOf("\\") + 1);
 
-                using (var sr = new StreamReader(fileName))
+                using (var sr = new StreamReader(filePath))
                 {
                     line = sr.ReadLine();
 
@@ -128,14 +139,14 @@ namespace VariableMapper
                         {
                             variableName = match.Groups[1].Value;
 
-                            if (colorVariableRegex.IsMatch(flattenedMappedVariables[normalizedName][variableName]))
+                            if (colorVariableRegex.IsMatch(flattenedMappedVariables[fileName][variableName]))
                             {
-                                if (!colorVariables.ContainsKey(normalizedName))
+                                if (!colorVariables.ContainsKey(fileName))
                                 {
-                                    colorVariables[normalizedName] = new HashSet<string>();
+                                    colorVariables[fileName] = new HashSet<string>();
                                 }
 
-                                colorVariables[normalizedName].Add(match.Groups[1].Value);
+                                colorVariables[fileName].Add(match.Groups[1].Value);
                             }              
                         }
 
@@ -146,15 +157,16 @@ namespace VariableMapper
             // MAP COLOR VARIABLES FOR EACH FILE ENDS
             #endregion
 
-            foreach (var fileName in directoryFiles)
+            #region Less Mapping
+            foreach (var filePath in directoryFiles)
             {
                 endOfFileReached = false;
 
-                normalizedName = fileName.Substring(fileName.LastIndexOf("\\") + 1);
+                fileName = filePath.Substring(filePath.LastIndexOf("\\") + 1);
 
-                using (var sr = new StreamReader(fileName))
+                using (var sr = new StreamReader(filePath))
                 {
-                    using (var sw = new StreamWriter(lessInputsMapped + normalizedName))
+                    using (var sw = new StreamWriter(lessInputsMapped + fileName))
                     {
                         line = sr.ReadLine();
 
@@ -217,9 +229,9 @@ namespace VariableMapper
                                         }
                                         else if (propertyMatch.Success)
                                         {
-                                            if (colorVariables[normalizedName].Contains(propertyMatch.Groups[1].Value))
+                                            if (colorVariables[fileName].Contains(propertyMatch.Groups[1].Value))
                                             {
-                                                sw.WriteLine(string.Format("/*{0}*/{1};", line.Trim(), "width:1"));
+                                                sw.WriteLine(string.Format("/*{0}*/{1}", line.Trim(), dummyProperty));
                                             }                                            
                                         }
                                     }
@@ -234,6 +246,7 @@ namespace VariableMapper
                     }
                 }
             }
+            #endregion
 
             #region Parsing of Less to Css
             // PARSING OF LESS TO CSS STARTS
@@ -242,14 +255,14 @@ namespace VariableMapper
             string fileNameWithExtension;
             string parsedCss;
 
-            foreach (var fileName in directoryFiles)
+            foreach (var filePath in directoryFiles)
             {
-                fileNameWithExtension = fileName.Substring(fileName.LastIndexOf("\\") + 1);
+                fileNameWithExtension = filePath.Substring(filePath.LastIndexOf("\\") + 1);
 
-                normalizedName = fileNameWithExtension.Substring(0, fileNameWithExtension.Length - 5);
+                fileName = fileNameWithExtension.Substring(0, fileNameWithExtension.Length - 5);
 
-                parsedCss = Less.Parse(File.ReadAllText(fileName));
-                File.WriteAllText(lessOutput + normalizedName + ".css", parsedCss);
+                parsedCss = Less.Parse(File.ReadAllText(filePath));
+                File.WriteAllText(lessOutput + fileName + ".css", parsedCss);
             }
             // PARSING OF LESS TO CSS ENDS
             #endregion

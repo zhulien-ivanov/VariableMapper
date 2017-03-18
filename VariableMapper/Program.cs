@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using dotless.Core;
 using System.Linq;
+using System;
 
 namespace VariableMapper
 {
@@ -165,6 +166,10 @@ namespace VariableMapper
 
                 fileName = filePath.Substring(filePath.LastIndexOf("\\") + 1);
 
+                Console.ForegroundColor = ConsoleColor.DarkGreen;
+                Console.WriteLine(String.Format("Start of mapping file <{0}>.", fileName));
+                Console.ResetColor();
+
                 using (var sr = new StreamReader(filePath))
                 {
                     using (var sw = new StreamWriter(lessInputsMapped + fileName))
@@ -233,7 +238,11 @@ namespace VariableMapper
                                             if (colorVariables[fileName].Contains(propertyMatch.Groups[1].Value))
                                             {
                                                 sw.WriteLine(string.Format("/*{0}*/{1}", line.Trim(), dummyProperty));
-                                            }                                            
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine(String.Format("   Property <{0}> is excluded because it is either inherited or not a colour property.", propertyMatch.Groups[1].Value));
+                                            }                                         
                                         }
                                     }
                                 }
@@ -246,6 +255,8 @@ namespace VariableMapper
                         }
                     }
                 }
+
+                Console.WriteLine();
             }
             #endregion
 

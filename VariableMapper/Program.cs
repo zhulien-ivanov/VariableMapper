@@ -21,12 +21,16 @@ namespace VariableMapper
             string closingSelectorPattern = @"\s*}$";
             string propertyPattern = @"[a-zA-Z0-9-_]+: .*@.+;";
 
+            string colorVariablePattern = @"(@[a-zA-Z0-9-_]+): .*(?:(@color_[a-zA-Z0-9-_]+)|(#[0-9a-fA-F]{3,})|(rgb[a]?[(].*[)])).*;";
+
             var singleLineSelectorRegex = new Regex(singleLineSelector);
             var multiLineSelectorRegex = new Regex(multiLineSelector);
 
             var selectorRegex = new Regex(selectorPattern);
             var closingSelectorRegex = new Regex(closingSelectorPattern);
             var propertyRegex = new Regex(propertyPattern);
+
+            var colorVariableRegex = new Regex(colorVariablePattern);
 
             var directoryFiles = Directory.GetFiles(lessInputs);
 
@@ -40,6 +44,41 @@ namespace VariableMapper
 
             var sb = new StringBuilder();
 
+            var colorVariables = new Dictionary<string, HashSet<string>>();
+
+            // MAP COLOR VARIABLES FOR EACH FILE STARTS
+
+            foreach (var fileName in directoryFiles)
+            {
+                normalizedName = fileName.Substring(fileName.LastIndexOf("\\") + 1);
+
+                using (var sr = new StreamReader(fileName))
+                {
+                    line = sr.ReadLine();
+
+                    while (line != null)
+                    {
+                        var match = colorVariableRegex.Match(line);
+
+                        if (match.Success)
+                        {
+                            if (!colorVariables.ContainsKey(normalizedName))
+                            {
+                                colorVariables[normalizedName] = new HashSet<string>();
+                            }
+
+                            colorVariables[normalizedName].Add(match.Groups[1].Value);                 
+                        }
+
+                        line = sr.ReadLine();
+                    }
+                }
+            }
+
+            System.Console.WriteLine();
+
+            // MAP COLOR VARIABLES FOR EACH FILE ENDS
+                  
             foreach (var fileName in directoryFiles)
             {
                 endOfFileReached = false;

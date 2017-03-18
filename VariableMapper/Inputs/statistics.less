@@ -1,6 +1,43 @@
+@import (reference) '__colors.less';
+@import (reference) '__mixins.less';
+
+@leagueStatisticsColor: @color_k6;
+@leagueStatisticsIconNeutralColor: @color_k4;
+@leagueStatisticsIconPositiveColor: @color_g1;
+@leagueStatisticsIconNegativeColor: @color_r1;
+
+@statisticsEventGameWonColor: @color_g2;
+@statisticsEventGameLostColor: @color_r2;
+@statisticsEventGameDrawColor: @color_w;
+
+@statisticsEventGame2FilterOpacity: 85;
+@statisticsEventGame3FilterOpacity: 70;
+@statisticsEventGame4FilterOpacity: 55;
+@statisticsEventGame5FilterOpacity: 40;
+
+@eventWrapperBgColor: @color_k1;
+@eventWrapperTopBorderColor: @color_k3;
+
+@eventBlockLeagueLinkColor: @color_y1;
+
+@eventBlockBacklinkColor: @color_w;
+@eventBlockBacklinkHoverColor: @eventBlockBacklinkColor;
+
+@eventBlockEventNameColor: @color_w;
+@eventBlockStartDateColor: @eventBlockEventNameColor;
+
+@eventBlockFavouriteFavouriteIconColor: @color_k4;
+@eventBlockFavouriteFavouriteIconHoverColor: @color_y1;
+@eventBlockFavouriteFavouriteIconFavouritedColor: @eventBlockFavouriteFavouriteIconHoverColor;
+
+@event-header-padding: 9px;
+
 .league-statistics {
     border: none !important;
-	
+    font-size: 11px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    color: @leagueStatisticsColor;
+    min-width: 100.9%; // fix for safary
     &-container .ui-widget-header {
         cursor: pointer;
     }

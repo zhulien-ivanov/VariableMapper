@@ -234,6 +234,25 @@ namespace VariableMapper
                     }
                 }
             }
+
+            #region Parsing of Less to Css
+            // PARSING OF LESS TO CSS STARTS
+            directoryFiles = Directory.GetFiles(lessInputsMapped);
+
+            string fileNameWithExtension;
+            string parsedCss;
+
+            foreach (var fileName in directoryFiles)
+            {
+                fileNameWithExtension = fileName.Substring(fileName.LastIndexOf("\\") + 1);
+
+                normalizedName = fileNameWithExtension.Substring(0, fileNameWithExtension.Length - 5);
+
+                parsedCss = Less.Parse(File.ReadAllText(fileName));
+                File.WriteAllText(lessOutput + normalizedName + ".css", parsedCss);
+            }
+            // PARSING OF LESS TO CSS ENDS
+            #endregion
         }
     }
 }

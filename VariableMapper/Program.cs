@@ -21,6 +21,7 @@ namespace VariableMapper
             string closingSelectorPattern = @"\s*}$";
             string propertyPattern = @"[a-zA-Z0-9-_]+: .*@.+;";
 
+            string variablePattern = @"(@[a-zA-Z0-9-_]+): (.*);";
             string colorVariablePattern = @"(@[a-zA-Z0-9-_]+): .*(?:(@color_[a-zA-Z0-9-_]+)|(#[0-9a-fA-F]{3,})|(rgb[a]?[(].*[)])).*;";
 
             var singleLineSelectorRegex = new Regex(singleLineSelector);
@@ -30,6 +31,7 @@ namespace VariableMapper
             var closingSelectorRegex = new Regex(closingSelectorPattern);
             var propertyRegex = new Regex(propertyPattern);
 
+            var variableRegex = new Regex(variablePattern);
             var colorVariableRegex = new Regex(colorVariablePattern);
 
             var directoryFiles = Directory.GetFiles(lessInputs);
@@ -44,10 +46,66 @@ namespace VariableMapper
 
             var sb = new StringBuilder();
 
-            var colorVariables = new Dictionary<string, HashSet<string>>();
+            // CREATE COLLECTION WITH FLAT VARIABLES STARTS
+            var mappedVariables = new Dictionary<string, Dictionary<string, string>>();
+
+            foreach (var fileName in directoryFiles)
+            {
+                normalizedName = fileName.Substring(fileName.LastIndexOf("\\") + 1);
+
+                using (var sr = new StreamReader(fileName))
+                {
+                    line = sr.ReadLine();
+
+                    while (line != null)
+                    {
+                        var match = variableRegex.Match(line);
+
+                        if (match.Success)
+                        {
+                            if (!mappedVariables.ContainsKey(normalizedName))
+                            {
+                                mappedVariables[normalizedName] = new Dictionary<string, string>();
+                            }
+
+                            mappedVariables[normalizedName].Add(match.Groups[1].Value, match.Groups[2].Value);
+                        }
+
+                        line = sr.ReadLine();
+                    }
+                }
+            }
+
+            string currentVariable;
+
+            // START FLATTENING
+            var flattenedMappedVariables = new Dictionary<string, Dictionary<string, string>>();
+
+            foreach (var variableMappingPair in mappedVariables)
+            {
+                foreach (var variableMapping in variableMappingPair.Value)
+                {
+                    currentVariable = variableMapping.Value;
+
+                    while (variableMappingPair.Value.ContainsKey(currentVariable))
+                    {
+                        currentVariable = variableMappingPair.Value[currentVariable];
+                    }
+
+                    if (!flattenedMappedVariables.ContainsKey(variableMappingPair.Key))
+                    {
+                        flattenedMappedVariables[variableMappingPair.Key] = new Dictionary<string, string>();
+                    }
+
+                    flattenedMappedVariables[variableMappingPair.Key][variableMapping.Key] = currentVariable;            
+                }
+            }  
+            // END FLATTENING
+            // CREATE COLLECTION WITH FLAT VARIABLES ENDS
 
             // MAP COLOR VARIABLES FOR EACH FILE STARTS
-
+            var colorVariables = new Dictionary<string, HashSet<string>>();
+            
             foreach (var fileName in directoryFiles)
             {
                 normalizedName = fileName.Substring(fileName.LastIndexOf("\\") + 1);
@@ -74,9 +132,6 @@ namespace VariableMapper
                     }
                 }
             }
-
-            System.Console.WriteLine();
-
             // MAP COLOR VARIABLES FOR EACH FILE ENDS
                   
             foreach (var fileName in directoryFiles)

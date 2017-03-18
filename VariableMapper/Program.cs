@@ -19,10 +19,11 @@ namespace VariableMapper
 
             string selectorPattern = @"^[a-zA-Z0-9-_#>., :&*]+( {|,)$";
             string closingSelectorPattern = @"\s*}$";
-            string propertyPattern = @"[a-zA-Z0-9-_]+: .*@.+;";
+            string propertyPattern = @"[a-zA-Z0-9-_]+: .*(@[a-zA-Z0-9-_]+).*;";
 
             string variablePattern = @"(@[a-zA-Z0-9-_]+): (.*);";
-            string colorVariablePattern = @"(@[a-zA-Z0-9-_]+): .*(?:(@color_[a-zA-Z0-9-_]+)|(#[0-9a-fA-F]{3,})|(rgb[a]?[(].*[)])).*;";
+            //string colorVariablePattern = @"(@[a-zA-Z0-9-_]+): .*(?:(@color_[a-zA-Z0-9-_]+)|(#[0-9a-fA-F]{3,})|(rgb[a]?[(].*[)])).*;";
+            string colorVariablePattern = @".*(?:(@color_[a-zA-Z0-9-_]+)|(#[0-9a-fA-F]{3,})|(rgb[a]?[(].*[)])).*";
 
             var singleLineSelectorRegex = new Regex(singleLineSelector);
             var multiLineSelectorRegex = new Regex(multiLineSelector);
@@ -46,6 +47,7 @@ namespace VariableMapper
 
             var sb = new StringBuilder();
 
+            #region MappedVariables helper
             // CREATE COLLECTION WITH FLAT VARIABLES STARTS
             var mappedVariables = new Dictionary<string, Dictionary<string, string>>();
 
@@ -99,12 +101,16 @@ namespace VariableMapper
 
                     flattenedMappedVariables[variableMappingPair.Key][variableMapping.Key] = currentVariable;            
                 }
-            }  
+            }
             // END FLATTENING
             // CREATE COLLECTION WITH FLAT VARIABLES ENDS
+            #endregion
 
+            #region ColorVariables helper
             // MAP COLOR VARIABLES FOR EACH FILE STARTS
             var colorVariables = new Dictionary<string, HashSet<string>>();
+
+            string variableName;
             
             foreach (var fileName in directoryFiles)
             {
@@ -116,16 +122,21 @@ namespace VariableMapper
 
                     while (line != null)
                     {
-                        var match = colorVariableRegex.Match(line);
+                        var match = variableRegex.Match(line);
 
                         if (match.Success)
                         {
-                            if (!colorVariables.ContainsKey(normalizedName))
-                            {
-                                colorVariables[normalizedName] = new HashSet<string>();
-                            }
+                            variableName = match.Groups[1].Value;
 
-                            colorVariables[normalizedName].Add(match.Groups[1].Value);                 
+                            if (colorVariableRegex.IsMatch(flattenedMappedVariables[normalizedName][variableName]))
+                            {
+                                if (!colorVariables.ContainsKey(normalizedName))
+                                {
+                                    colorVariables[normalizedName] = new HashSet<string>();
+                                }
+
+                                colorVariables[normalizedName].Add(match.Groups[1].Value);
+                            }              
                         }
 
                         line = sr.ReadLine();
@@ -133,7 +144,8 @@ namespace VariableMapper
                 }
             }
             // MAP COLOR VARIABLES FOR EACH FILE ENDS
-                  
+            #endregion
+
             foreach (var fileName in directoryFiles)
             {
                 endOfFileReached = false;
@@ -176,6 +188,8 @@ namespace VariableMapper
                                             break;
                                         }
 
+                                        var propertyMatch = propertyRegex.Match(line);
+
                                         if (selectorRegex.IsMatch(line))
                                         {
                                             while (multiLineSelectorRegex.IsMatch(line))
@@ -201,9 +215,12 @@ namespace VariableMapper
 
                                             sw.WriteLine(line);
                                         }
-                                        else if (propertyRegex.IsMatch(line))
+                                        else if (propertyMatch.Success)
                                         {
-                                            sw.WriteLine(string.Format("/*{0}*/", line.Trim()));
+                                            if (colorVariables[normalizedName].Contains(propertyMatch.Groups[1].Value))
+                                            {
+                                                sw.WriteLine(string.Format("/*{0}*/{1};", line.Trim(), "width:1"));
+                                            }                                            
                                         }
                                     }
                                 }

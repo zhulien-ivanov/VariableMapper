@@ -1,0 +1,121 @@
+.league-statistics {
+    &-container .ui-widget-header {
+    }
+    &__item {
+        &--left {
+        }
+        &--center {
+        }
+    }
+    &__icon {
+        &--neutral {
+/*color: @leagueStatisticsIconNeutralColor;*/
+        }
+        &--positive {
+/*color: @leagueStatisticsIconPositiveColor;*/
+        }
+        &--negative {
+/*color: @leagueStatisticsIconNegativeColor;*/
+        }
+    }
+}
+.statistics {
+    &-event {
+        &__item {
+        }
+        &__ranking {
+            &--positive {
+/*color: @statisticsEventGameWonColor;*/
+            }
+            &--negative {
+/*color: @statisticsEventGameLostColor;*/
+            }
+        }
+        &__game {
+            &--won, &--wonafterovertime, &--wonafterpenalty {
+/*color: @statisticsEventGameWonColor;*/
+            }
+            &--lost, &--lostafterovertime, &--lostafterpenalty {
+/*color: @statisticsEventGameLostColor;*/
+            }
+            &--draw {
+/*color: @statisticsEventGameDrawColor;*/
+            }
+        }
+        &__games {
+        }
+        &__game {
+            &--2 {
+/*opacity: @statisticsEventGame2FilterOpacity / 100;*/
+/*filter: alpha(opacity=@statisticsEventGame2FilterOpacity);*/
+            }
+            &--3 {
+/*opacity: @statisticsEventGame3FilterOpacity / 100;*/
+/*filter: alpha(opacity=@statisticsEventGame3FilterOpacity);*/
+            }
+            &--4 {
+/*opacity: @statisticsEventGame4FilterOpacity / 100;*/
+/*filter: alpha(opacity=@statisticsEventGame4FilterOpacity);*/
+            }
+            &--5 {
+/*opacity: @statisticsEventGame5FilterOpacity / 100;*/
+/*filter: alpha(opacity=@statisticsEventGame5FilterOpacity);*/
+            }
+        }
+    }
+}
+.event {
+    &-wrapper {
+/*background: @eventWrapperBgColor none repeat scroll 0 0;*/
+/*border-top: 1px solid @eventWrapperTopBorderColor;*/
+    }
+    &-block {
+/*padding: 5px @event-header-padding @event-header-padding @event-header-padding;*/
+        &--sport {
+            &-4 {
+            }
+            &-5 {
+            }
+        }
+        &---7 {
+        }
+        &--16 {
+        }
+        &__start-date {
+/*color: @eventBlockStartDateColor;*/
+        }
+        &__event-name {
+/*color: @eventBlockEventNameColor;*/
+        }
+        &__league {
+            &-link {
+/*color: @eventBlockLeagueLinkColor;*/
+                &:hover {
+                }
+            }
+        }
+        &__backlink {
+/*color: @eventBlockBacklinkColor !important;*/
+            &:hover {
+/*color: @eventBlockBacklinkHoverColor !important;*/
+            }
+        }
+        &__favourite {
+            &.favourite-icon {
+/*color: @eventBlockFavouriteFavouriteIconColor;*/
+                &:hover {
+/*color: @eventBlockFavouriteFavouriteIconHoverColor;*/
+                }
+            }
+            &.favourite-icon--favourited {
+/*color: @eventBlockFavouriteFavouriteIconFavouritedColor !important;*/
+            }
+        }
+        &__more {
+/*right: @event-header-padding;*/
+/*bottom: @event-header-padding;*/
+        }
+    }
+}
+.no-favicons .event-block__favourite {
+}

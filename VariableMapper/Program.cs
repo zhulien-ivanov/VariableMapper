@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using dotless.Core;
+using System.Linq;
 
 namespace VariableMapper
 {
@@ -265,6 +266,157 @@ namespace VariableMapper
                 File.WriteAllText(lessOutput + fileName + ".css", parsedCss);
             }
             // PARSING OF LESS TO CSS ENDS
+            #endregion
+
+            #region VariableMapping
+            directoryFiles = Directory.GetFiles(lessOutput);
+
+            var variableMappings = new Dictionary<string, Dictionary<string, List<PropertyUsage>>>();
+
+            string propertyValue;
+            string propertyVariableName;
+            string propertyTemplate;
+
+            sb.Clear();
+
+            foreach (var filePath in directoryFiles)
+            {
+                fileNameWithExtension = filePath.Substring(filePath.LastIndexOf("\\") + 1);
+                fileName = fileNameWithExtension.Substring(0, fileNameWithExtension.Length - 4);
+
+                variableMappings[fileName] = new Dictionary<string, List<PropertyUsage>>();
+
+                using (var sr = new StreamReader(filePath))
+                {
+                    line = sr.ReadLine();
+
+                    while (line != null)
+                    {
+                        var selectorMatch = cssMultiLineSelectorRegex.Match(line);
+
+                        while (selectorMatch.Success)
+                        {
+                            sb.Append(selectorMatch.Groups[1].Value + " ");
+
+                            line = sr.ReadLine();
+
+                            selectorMatch = cssMultiLineSelectorRegex.Match(line);
+                        }
+
+                        selectorMatch = cssSingleLineSelectorRegex.Match(line);
+
+                        if (selectorMatch.Success)
+                        {
+                            sb.Append(selectorMatch.Groups[1].Value);
+
+                            line = sr.ReadLine().Trim();
+
+                            selectorMatch = cssPropertyRegex.Match(line);
+
+                            while (selectorMatch.Success)
+                            {
+                                propertyValue = selectorMatch.Groups[1].Value;
+                                propertyVariableName = selectorMatch.Groups[2].Value;
+                                propertyTemplate = propertyValue.Replace(propertyVariableName, "{var}");
+
+                                if (!variableMappings[fileName].ContainsKey(propertyVariableName))
+                                {
+                                    variableMappings[fileName][propertyVariableName] = new List<PropertyUsage>();
+                                }
+
+                                variableMappings[fileName][propertyVariableName].Add(new PropertyUsage(sb.ToString(), propertyTemplate));                                                           
+
+                                line = sr.ReadLine().Trim();
+
+                                if (line == dummyProperty)
+                                {
+                                    line = sr.ReadLine().Trim();
+                                }
+
+                                selectorMatch = cssPropertyRegex.Match(line);
+                            }
+
+                            sb.Clear();
+                        }
+
+                        line = sr.ReadLine();
+                    }
+                }
+
+                var propertyStrings = new List<string>();
+                var selectorStrings = new List<string>();
+
+                // MAPPING FILE PREPARATION STARTS
+                sb.Clear();
+
+                sb.AppendLine(string.Format("\t{0}", "{"));
+                sb.AppendLine(string.Format("\t\t{0}: '{1}',", "name", "{NAME}"));
+                sb.AppendLine(string.Format("\t\t{0}: '{1}',", "value", fileName));
+                sb.AppendLine(string.Format("\t\t{0}: [", "variables"));
+
+                foreach (var variable in variableMappings[fileName])
+                {
+                    sb.AppendLine(string.Format("\t\t\t{0}", "{"));
+                    sb.AppendLine(string.Format("\t\t\t\t{0}: '{1}',", "variableName", variable.Key));
+                    sb.AppendLine(string.Format("\t\t\t\t{0}: '{1}',", "variableTitle", "{TITLE}"));
+
+                    var mappedByPropertyDict = new Dictionary<string, List<string>>();
+                    var mappeByPropertyDictFlatten = new Dictionary<string, string>();
+                    var mappedByPropertyAndSelectorDict = new Dictionary<string, List<string>>();
+                    var mappedByPropertyAndSelectorDictFlatten = new Dictionary<string, string>();
+
+                    foreach (var templateUsage in variable.Value)
+                    {
+                        if (!mappedByPropertyDict.ContainsKey(templateUsage.PropertyTemplate))
+                        {
+                            mappedByPropertyDict[templateUsage.PropertyTemplate] = new List<string>();
+                        }
+
+                        mappedByPropertyDict[templateUsage.PropertyTemplate].Add(templateUsage.Selector);
+                    }
+
+                    foreach (var pair in mappedByPropertyDict)
+                    {
+                        mappeByPropertyDictFlatten[pair.Key] = string.Join(", ", pair.Value);
+                    }
+
+                    foreach (var pair in mappeByPropertyDictFlatten)
+                    {
+                        if (!mappedByPropertyAndSelectorDict.ContainsKey(pair.Value))
+                        {
+                            mappedByPropertyAndSelectorDict[pair.Value] = new List<string>();
+                        }
+
+                        mappedByPropertyAndSelectorDict[pair.Value].Add(pair.Key);
+                    }
+
+                    foreach (var pair in mappedByPropertyAndSelectorDict)
+                    {
+                        mappedByPropertyAndSelectorDictFlatten[pair.Key] = string.Join("', '", pair.Value);
+                    }
+
+                    foreach (var pair in mappedByPropertyAndSelectorDictFlatten)
+                    {
+                        propertyStrings.Add(pair.Value);
+                        selectorStrings.Add(pair.Key);
+                    }
+
+                    sb.AppendLine(string.Format("\t\t\t\t{0}: ['{1}'],", "variableSelector", string.Join("', '", selectorStrings)));
+                    sb.AppendLine(string.Format("\t\t\t\t{0}: [['{1}']],", "propertyTemplate", string.Join("'], ['", propertyStrings)));
+
+                    sb.AppendLine(string.Format("\t\t\t\t{0}: '{1}{2}.png'", "imageSource", "Images/{NAME}/", variable.Key));
+                    sb.AppendLine(string.Format("\t\t\t{0}", "},"));
+
+                    propertyStrings.Clear();
+                    selectorStrings.Clear();
+                }
+
+                sb.AppendLine(string.Format("\t\t{0}", "]"));
+                sb.AppendLine(string.Format("\t{0}", "}"));
+
+                File.WriteAllText(mappingsOutput + fileName + ".txt", sb.ToString());
+                sb.Clear();
+            }
             #endregion
         }
     }

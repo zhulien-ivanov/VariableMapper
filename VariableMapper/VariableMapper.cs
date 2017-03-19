@@ -12,7 +12,13 @@ namespace VariableMapper
 {
     public class VariableMapper
     {
-        private string dummyProperty = "width: 1;";
+        private string dummyProperty;
+
+        public VariableMapper(string dummyProperty)
+        {
+            this.dummyProperty = dummyProperty;
+        }
+        public VariableMapper() : this("width: 1;") { }
 
         public Dictionary<string, string> GetAllRawVariablesForComponent(string filePath)
         {

@@ -1,0 +1,104 @@
+	{
+		name: '{NAME}',
+		value: 'zhulien',
+		variables: [
+			{
+				variableName: '@search-box-button-color',
+				variableTitle: '{TITLE}',
+				variableSelector: ['.search-box__button'],
+				propertyTemplate: [['color: {var} !important']],
+				imageSource: 'Images/{NAME}/@search-box-button-color.png'
+			},
+			{
+				variableName: '@search-box-button-hover-color',
+				variableTitle: '{TITLE}',
+				variableSelector: ['.search-box__button.hover'],
+				propertyTemplate: [['color: {var} !important']],
+				imageSource: 'Images/{NAME}/@search-box-button-hover-color.png'
+			},
+			{
+				variableName: '@search-container-background-color',
+				variableTitle: '{TITLE}',
+				variableSelector: ['.search-container'],
+				propertyTemplate: [['background-color: {var}']],
+				imageSource: 'Images/{NAME}/@search-container-background-color.png'
+			},
+			{
+				variableName: '@search-background-color',
+				variableTitle: '{TITLE}',
+				variableSelector: ['.search, .search::before, .search-header__close', '.search::before', '.search-header__close'],
+				propertyTemplate: [['background-color: {var}'], ['color: {var}'], ['border: 1px solid {var}']],
+				imageSource: 'Images/{NAME}/@search-background-color.png'
+			},
+			{
+				variableName: '@search-border-color',
+				variableTitle: '{TITLE}',
+				variableSelector: ['.search', '.search::before'],
+				propertyTemplate: [['border: 1px solid {var}'], ['border-top: 1px solid {var}', 'border-left: 1px solid {var}']],
+				imageSource: 'Images/{NAME}/@search-border-color.png'
+			},
+			{
+				variableName: '@search-mb-event-details-buttons-button-background-color',
+				variableTitle: '{TITLE}',
+				variableSelector: ['.search .mb-event-details-buttons__button'],
+				propertyTemplate: [['background-color: {var}']],
+				imageSource: 'Images/{NAME}/@search-mb-event-details-buttons-button-background-color.png'
+			},
+			{
+				variableName: '@search-mb-event-details-buttons-button-border-color',
+				variableTitle: '{TITLE}',
+				variableSelector: ['.search .mb-event-details-buttons__button'],
+				propertyTemplate: [['border: 1px solid {var}']],
+				imageSource: 'Images/{NAME}/@search-mb-event-details-buttons-button-border-color.png'
+			},
+			{
+				variableName: '@search-mb-event-details-buttons-button-hover-background-color',
+				variableTitle: '{TITLE}',
+				variableSelector: ['.search .mb-event-details-buttons__button:hover'],
+				propertyTemplate: [['background-color: {var}']],
+				imageSource: 'Images/{NAME}/@search-mb-event-details-buttons-button-hover-background-color.png'
+			},
+			{
+				variableName: '@search-group-header-color',
+				variableTitle: '{TITLE}',
+				variableSelector: ['.search-group-header'],
+				propertyTemplate: [['color: {var}']],
+				imageSource: 'Images/{NAME}/@search-group-header-color.png'
+			},
+			{
+				variableName: '@search-group-header-bottom-border-color',
+				variableTitle: '{TITLE}',
+				variableSelector: ['.search-group-header'],
+				propertyTemplate: [['border-bottom: 1px solid {var}']],
+				imageSource: 'Images/{NAME}/@search-group-header-bottom-border-color.png'
+			},
+			{
+				variableName: '@search-header-close-color',
+				variableTitle: '{TITLE}',
+				variableSelector: ['.search-header__close'],
+				propertyTemplate: [['color: {var}']],
+				imageSource: 'Images/{NAME}/@search-header-close-color.png'
+			},
+			{
+				variableName: '@search-header-close-hover-color',
+				variableTitle: '{TITLE}',
+				variableSelector: ['.search-header__close:hover'],
+				propertyTemplate: [['color: {var}']],
+				imageSource: 'Images/{NAME}/@search-header-close-hover-color.png'
+			},
+			{
+				variableName: '@mb-option-button-search-results-color',
+				variableTitle: '{TITLE}',
+				variableSelector: ['.mb-option-button-search-results'],
+				propertyTemplate: [['color: {var}']],
+				imageSource: 'Images/{NAME}/@mb-option-button-search-results-color.png'
+			},
+			{
+				variableName: '@mb-option-button-search-results-hover-color',
+				variableTitle: '{TITLE}',
+				variableSelector: ['.mb-option-button-search-results:hover'],
+				propertyTemplate: [['color: {var} !important']],
+				imageSource: 'Images/{NAME}/@mb-option-button-search-results-hover-color.png'
+			},
+		]
+	}

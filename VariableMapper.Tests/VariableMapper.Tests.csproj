@@ -58,6 +58,7 @@
     <Compile Include="GetColorVariablesForComponentTests.cs" />
     <Compile Include="GetStrippedLessStringForComponentTests.cs" />
     <Compile Include="ConstructVariableMappingsTableForComponentTests.cs" />
+    <Compile Include="GetVariableMappingsForComponentTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VariableMapper.Common\VariableMapper.Common.csproj">

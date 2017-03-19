@@ -149,7 +149,7 @@ namespace VariableMapper
 
                 while (line != null)
                 {
-                    // exclude functions(mixins, media queries, etc..)
+                    // Exclude functions(mixins, media queries, etc..)
                     if (containsFunctionsRegex.IsMatch(line))
                     {
                         bracketCounter++;
@@ -257,7 +257,7 @@ namespace VariableMapper
             return sb.ToString();
         }
 
-        public Dictionary<string, List<PropertyUsage>> ConstructVariableMappingsTableForComponent(string filePath)
+        public Dictionary<string, List<PropertyUsage>> ConstructVariableMappingsTableForComponent(string filePath, string variablePlaceholder = "{var}")
         {
             string cssSingleLineSelector = @"^([a-zA-Z0-9-_#>., :*]+) {$";
             string cssMultiLineSelector = @"^([a-zA-Z0-9-_#>., :*]+,)$";
@@ -307,7 +307,7 @@ namespace VariableMapper
                         {
                             propertyValue = selectorMatch.Groups[1].Value;
                             propertyVariableName = selectorMatch.Groups[2].Value;
-                            propertyTemplate = propertyValue.Replace(propertyVariableName, "{var}");
+                            propertyTemplate = propertyValue.Replace(propertyVariableName, variablePlaceholder);
 
                             if (!variableMappings.ContainsKey(propertyVariableName))
                             {

@@ -1,6 +1,6 @@
-﻿namespace VariableMapper
+﻿namespace VariableMapper.Common
 {
-    internal class PropertyUsage
+    public class PropertyUsage
     {
         private string selector;
         private string propertyTemplate;

@@ -86,7 +86,7 @@ namespace VariableMapper
                     {
                         variableValue = variableValue.Replace(includesVariableMatch.Groups[1].Value, flattenedMappedVariables[includesVariableMatch.Groups[1].Value]);
                         flattenedMappedVariables[variableMapping.Key] = variableValue;
-                    }                    
+                    }
                 }
             }
 
@@ -114,12 +114,16 @@ namespace VariableMapper
 
         public string GetStrippedLessStringForComponent(string filePath)
         {
+            string containsFunctionsPattern = @"(?:(:?.*@.*)|(?:.*[(][)].*)){";
+
             string selectorPattern = @"^[a-zA-Z0-9-_#>., :&*]+(?: {|,)$";
             string closingSelectorPattern = @"\s*}$";
             string singleLineSelector = @"^[a-zA-Z0-9-_#>., :&*]+ {$";
             string multiLineSelector = @"^[a-zA-Z0-9-_#>., :&*]+,$";
 
             string propertyPattern = @"[a-zA-Z0-9-_]+: .*(@[a-zA-Z0-9-_]+).*;";
+
+            var containsFunctionsRegex = new Regex(containsFunctionsPattern);
 
             var selectorRegex = new Regex(selectorPattern);
             var closingSelectorRegex = new Regex(closingSelectorPattern);
@@ -145,7 +149,32 @@ namespace VariableMapper
 
                 while (line != null)
                 {
-                    if (selectorRegex.IsMatch(line))
+                    // exclude functions(mixins, media queries, etc..)
+                    if (containsFunctionsRegex.IsMatch(line))
+                    {
+                        bracketCounter++;
+
+                        while (bracketCounter != 0)
+                        {
+                            line = sr.ReadLine();
+
+                            if (line == null)
+                            {
+                                endOfFileReached = true;
+                                break;
+                            }
+
+                            if (line.Contains("{"))
+                            {
+                                bracketCounter++;
+                            }
+                            else if (line.Contains("}"))
+                            {
+                                bracketCounter--;
+                            }
+                        }
+                    }
+                    else if (selectorRegex.IsMatch(line))
                     {
                         while (multiLineSelectorRegex.IsMatch(line))
                         {

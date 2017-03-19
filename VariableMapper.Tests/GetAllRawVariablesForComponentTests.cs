@@ -11,6 +11,7 @@ namespace VariableMapper.Tests
         public void GetAllRawVariablesForComponentWorksCorrectly()
         {
             var vm = new VariableMapper();
+
             var filePath = @"..\..\Tests\Inputs\testVariables.less";
 
             var expectedMappings = new Dictionary<string, string>();

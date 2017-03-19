@@ -77,6 +77,7 @@ namespace VariableMapper
         private static HashSet<string> GetColorVariablesForComponent(Dictionary<string, string> flattenedVariables)
         {
             string colorVariablePattern = @".*(?:(@color_[a-zA-Z0-9-_]+)|(#[0-9a-fA-F]{3,})|(rgb[a]?[(].*[)])).*";
+
             var colorVariableRegex = new Regex(colorVariablePattern);
 
             var colorVariables = new HashSet<string>();
@@ -116,6 +117,8 @@ namespace VariableMapper
 
             int bracketCounter = 0;
             bool endOfFileReached = false;
+
+            var skippedVariables = new HashSet<string>();
 
             using (var sr = new StreamReader(filePath))
             {
@@ -158,8 +161,16 @@ namespace VariableMapper
                                     }
                                     else
                                     {
-                                        // ADD LOGGER
-                                        Console.WriteLine(String.Format("   Property <{0}> is excluded because it is either inherited or not a colour property.", propertyMatch.Groups[1].Value));
+                                        if (!skippedVariables.Contains(propertyMatch.Groups[1].Value))
+                                        {
+                                            skippedVariables.Add(propertyMatch.Groups[1].Value);
+
+                                            Console.Write("    Property <");
+                                            Console.ForegroundColor = ConsoleColor.DarkRed;
+                                            Console.Write(propertyMatch.Groups[1].Value);
+                                            Console.ResetColor();
+                                            Console.WriteLine("> is excluded because it is either inherited or not a colour property.");
+                                        }
                                     }
                                 }
                                 else if (selectorRegex.IsMatch(line))
@@ -279,26 +290,34 @@ namespace VariableMapper
 
         private static string GetVariableMappingsForComponent(Dictionary<string, List<PropertyUsage>> mappingTable, string fileName)
         {
-            var propertyStrings = new List<string>();
-            var selectorStrings = new List<string>();
+            var spacingCount = 1;
+            var spacingSymbol = '\t';
 
             var sb = new StringBuilder();
 
-            sb.AppendLine(string.Format("\t{0}", "{"));
-            sb.AppendLine(string.Format("\t\t{0}: '{1}',", "name", "{NAME}"));
-            sb.AppendLine(string.Format("\t\t{0}: '{1}',", "value", fileName));
-            sb.AppendLine(string.Format("\t\t{0}: [", "variables"));
+            var mappedByPropertyDict = new Dictionary<string, List<string>>();
+            var mappeByPropertyDictFlatten = new Dictionary<string, string>();
+            var mappedByPropertyAndSelectorDict = new Dictionary<string, List<string>>();
+            var mappedByPropertyAndSelectorDictFlatten = new Dictionary<string, string>();
+
+            var propertyStrings = new List<string>();
+            var selectorStrings = new List<string>();
+
+            sb.AppendLine(string.Format("{0}{1}", new string(spacingSymbol, spacingCount), "{"));
+            sb.AppendLine(string.Format("{0}{1}: '{2}',", new string(spacingSymbol, spacingCount + 1), "name", "{NAME}"));
+            sb.AppendLine(string.Format("{0}{1}: '{2}',", new string(spacingSymbol, spacingCount + 1), "value", fileName));
+            sb.AppendLine(string.Format("{0}{1}: [", new string(spacingSymbol, spacingCount + 1), "variables"));
 
             foreach (var variable in mappingTable)
             {
-                sb.AppendLine(string.Format("\t\t\t{0}", "{"));
-                sb.AppendLine(string.Format("\t\t\t\t{0}: '{1}',", "variableName", variable.Key));
-                sb.AppendLine(string.Format("\t\t\t\t{0}: '{1}',", "variableTitle", "{TITLE}"));
+                sb.AppendLine(string.Format("{0}{1}", new string(spacingSymbol, spacingCount + 2), "{"));
+                sb.AppendLine(string.Format("{0}{1}: '{2}',", new string(spacingSymbol, spacingCount + 3), "variableName", variable.Key));
+                sb.AppendLine(string.Format("{0}{1}: '{2}',", new string(spacingSymbol, spacingCount + 3), "variableTitle", "{TITLE}"));
 
-                var mappedByPropertyDict = new Dictionary<string, List<string>>();
-                var mappeByPropertyDictFlatten = new Dictionary<string, string>();
-                var mappedByPropertyAndSelectorDict = new Dictionary<string, List<string>>();
-                var mappedByPropertyAndSelectorDictFlatten = new Dictionary<string, string>();
+                mappedByPropertyDict = new Dictionary<string, List<string>>();
+                mappeByPropertyDictFlatten = new Dictionary<string, string>();
+                mappedByPropertyAndSelectorDict = new Dictionary<string, List<string>>();
+                mappedByPropertyAndSelectorDictFlatten = new Dictionary<string, string>();
 
                 foreach (var templateUsage in variable.Value)
                 {
@@ -336,15 +355,23 @@ namespace VariableMapper
                     selectorStrings.Add(pair.Key);
                 }
 
-                sb.AppendLine(string.Format("\t\t\t\t{0}: ['{1}'],", "variableSelector", string.Join("', '", selectorStrings)));
-                sb.AppendLine(string.Format("\t\t\t\t{0}: [['{1}']],", "propertyTemplate", string.Join("'], ['", propertyStrings)));
+                sb.AppendLine(string.Format("{0}{1}: ['{2}'],", new string(spacingSymbol, spacingCount + 3), "variableSelector", string.Join("', '", selectorStrings)));
+                sb.AppendLine(string.Format("{0}{1}: [['{2}']],", new string(spacingSymbol, spacingCount + 3), "propertyTemplate", string.Join("'], ['", propertyStrings)));
 
-                sb.AppendLine(string.Format("\t\t\t\t{0}: '{1}{2}.png'", "imageSource", "Images/{NAME}/", variable.Key));
-                sb.AppendLine(string.Format("\t\t\t{0}", "},"));
+                sb.AppendLine(string.Format("{0}{1}: '{2}{3}.png'", new string(spacingSymbol, spacingCount + 3), "imageSource", "Images/{NAME}/", variable.Key));
+                sb.AppendLine(string.Format("{0}{1}", new string(spacingSymbol, spacingCount + 2), "},"));
+
+                mappedByPropertyDict.Clear();
+                mappeByPropertyDictFlatten.Clear();
+                mappedByPropertyAndSelectorDict.Clear();
+                mappedByPropertyAndSelectorDictFlatten.Clear();
+
+                propertyStrings.Clear();
+                selectorStrings.Clear();
             }
 
-            sb.AppendLine(string.Format("\t\t{0}", "]"));
-            sb.AppendLine(string.Format("\t{0}", "}"));
+            sb.AppendLine(string.Format("{0}{1}", new string(spacingSymbol, spacingCount + 1), "]"));
+            sb.AppendLine(string.Format("{0}{1}", new string(spacingSymbol, spacingCount), "}"));
 
             return sb.ToString();
         }
@@ -363,7 +390,7 @@ namespace VariableMapper
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
                 Console.Write(fileName);
                 Console.ResetColor();
-                Console.WriteLine(">.");
+                Console.WriteLine(">:");
 
                 var strippedLessString = GetStrippedLessStringForComponent(filePath);
                 File.WriteAllText(directoryOuputPath + fileName, strippedLessString);

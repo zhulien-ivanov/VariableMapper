@@ -22,5 +22,12 @@
             get { return this.propertyTemplate; }
             private set { this.propertyTemplate = value; }
         }
+
+        public override bool Equals(object otherAsObject)
+        {
+            var other = otherAsObject as PropertyUsage;
+
+            return ((this.Selector == other.Selector) && (this.PropertyTemplate == other.PropertyTemplate));
+        }
     }
 }

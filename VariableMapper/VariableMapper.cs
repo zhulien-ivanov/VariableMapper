@@ -220,7 +220,7 @@ namespace VariableMapper
                                             skippedVariables.Add(propertyMatch.Groups[1].Value);
 
                                             Console.Write("    Property <");
-                                            Console.ForegroundColor = ConsoleColor.DarkRed;
+                                            Console.ForegroundColor = ConsoleColor.DarkYellow;
                                             Console.Write(propertyMatch.Groups[1].Value);
                                             Console.ResetColor();
                                             Console.WriteLine("> is excluded because it is either inherited or not a colour property.");
@@ -446,7 +446,7 @@ namespace VariableMapper
                 fileName = filePath.Substring(filePath.LastIndexOf("\\") + 1);
 
                 Console.Write("Start of mapping file <");
-                Console.ForegroundColor = ConsoleColor.DarkGreen;
+                Console.ForegroundColor = ConsoleColor.Green;
                 Console.Write(fileName);
                 Console.ResetColor();
                 Console.WriteLine(">:");

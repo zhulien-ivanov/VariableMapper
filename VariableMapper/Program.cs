@@ -1,4 +1,6 @@
-﻿namespace VariableMapper
+﻿using System;
+
+namespace VariableMapper
 {
     public class Program
     {
@@ -14,6 +16,9 @@
             variableMapper.GenerateStrippedLessFiles(lessInputs, lessInputsMapped);
             variableMapper.ParseStrippedLessFilesToCss(lessInputsMapped, lessOutput);
             variableMapper.ConvertParsedCssFilesToVariableMappings(lessOutput, mappingsOutput);
+
+            Console.WriteLine("Mapping finished.");
+            Console.ReadLine();
         }
     }
 }

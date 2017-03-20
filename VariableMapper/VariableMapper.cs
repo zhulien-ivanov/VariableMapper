@@ -426,6 +426,11 @@ namespace VariableMapper
 
         public void GenerateStrippedLessFiles(string directoryInputPath, string directoryOuputPath)
         {
+            if (!Directory.Exists(directoryOuputPath))
+            {
+                Directory.CreateDirectory(directoryOuputPath);
+            }
+
             var directoryFiles = Directory.GetFiles(directoryInputPath);
 
             string fileName;
@@ -449,6 +454,11 @@ namespace VariableMapper
 
         public void ParseStrippedLessFilesToCss(string directoryInputPath, string directoryOuputPath)
         {
+            if (!Directory.Exists(directoryOuputPath))
+            {
+                Directory.CreateDirectory(directoryOuputPath);
+            }
+
             var directoryFiles = Directory.GetFiles(directoryInputPath);
 
             string fileNameWithExtension;
@@ -468,6 +478,11 @@ namespace VariableMapper
 
         public void ConvertParsedCssFilesToVariableMappings(string directoryInputPath, string directoryOuputPath)
         {
+            if (!Directory.Exists(directoryOuputPath))
+            {
+                Directory.CreateDirectory(directoryOuputPath);
+            }
+
             var directoryFiles = Directory.GetFiles(directoryInputPath);
 
             string fileNameWithExtension;

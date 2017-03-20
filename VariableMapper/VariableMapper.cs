@@ -22,7 +22,7 @@ namespace VariableMapper
 
         public Dictionary<string, string> GetAllRawVariablesForComponent(string filePath)
         {
-            string variablePattern = @"(@[a-zA-Z0-9-_]+): (.*);";
+            string variablePattern = @"^(@[a-zA-Z0-9-_]+): (.*);$";
             var variableRegex = new Regex(variablePattern);
 
             var mappedVariables = new Dictionary<string, string>();

@@ -117,7 +117,7 @@ namespace VariableMapper
             string containsFunctionsPattern = @"(?:(:?.*@.*)|(?:.*[(][)].*)){";
 
             string selectorPattern = @"^[a-zA-Z0-9-_#>., :&*]+(?: {|,)$";
-            string closingSelectorPattern = @"\s*}$";
+            string closingSelectorPattern = @"\s*}";
             string singleLineSelector = @"^[a-zA-Z0-9-_#>., :&*]+ {$";
             string multiLineSelector = @"^[a-zA-Z0-9-_#>., :&*]+,$";
 
@@ -149,8 +149,6 @@ namespace VariableMapper
 
                 while (line != null)
                 {
-                    line = line.Trim();
-
                     // Exclude functions(mixins, media queries, etc..)
                     if (containsFunctionsRegex.IsMatch(line))
                     {
@@ -165,8 +163,6 @@ namespace VariableMapper
                                 endOfFileReached = true;
                                 break;
                             }
-
-                            line = line.Trim();
 
                             if (line.Contains("{"))
                             {
@@ -184,7 +180,7 @@ namespace VariableMapper
                         {
                             sb.Append(line + " ");
 
-                            line = sr.ReadLine().Trim();
+                            line = sr.ReadLine();
                         }
 
                         if (singleLineSelectorRegex.IsMatch(line))
@@ -203,15 +199,13 @@ namespace VariableMapper
                                     break;
                                 }
 
-                                line = line.Trim();
-
-                                var propertyMatch = propertyRegex.Match(line);
+                                var propertyMatch = propertyRegex.Match(line.Trim());
 
                                 if (propertyMatch.Success)
                                 {
                                     if (colorVariablesForComponent.Contains(propertyMatch.Groups[1].Value))
                                     {
-                                        sb.AppendLine(string.Format("/*{0}*/{1}", line, dummyProperty));
+                                        sb.AppendLine(string.Format("/*{0}*/{1}", line.Trim(), dummyProperty));
                                     }
                                     else
                                     {
@@ -233,7 +227,7 @@ namespace VariableMapper
                                     {
                                         sb.Append(line + " ");
 
-                                        line = sr.ReadLine().Trim();
+                                        line = sr.ReadLine();
                                     }
 
                                     if (singleLineSelectorRegex.IsMatch(line))
@@ -342,7 +336,7 @@ namespace VariableMapper
             return variableMappings;
         }
 
-        public string GetVariableMappingsForComponent(Dictionary<string, List<PropertyUsage>> mappingTable, string fileName)
+        public VariableMapping GetVariableMappingsForComponent(Dictionary<string, List<PropertyUsage>> mappingTable, string fileName)
         {
             var spacingCount = 1;
             var spacingSymbol = '\t';
@@ -427,7 +421,9 @@ namespace VariableMapper
             sb.AppendLine(string.Format("{0}{1}", new string(spacingSymbol, spacingCount + 1), "]"));
             sb.AppendLine(string.Format("{0}{1}", new string(spacingSymbol, spacingCount), "}"));
 
-            return sb.ToString();
+            var variableMapping = new VariableMapping(mappingTable.Count, sb.ToString());
+
+            return variableMapping;
         }
 
         public void GenerateStrippedLessFiles(string directoryInputPath, string directoryOuputPath)
@@ -501,7 +497,7 @@ namespace VariableMapper
 
                 var mappings = GetVariableMappingsForComponent(ConstructVariableMappingsTableForComponent(filePath), fileName);
 
-                File.WriteAllText(directoryOuputPath + fileName + ".txt", mappings);
+                File.WriteAllText(directoryOuputPath + fileName + ".txt", mappings.VariableMappings);
             }
         }
     }

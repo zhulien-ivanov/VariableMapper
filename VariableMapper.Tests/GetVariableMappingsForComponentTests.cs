@@ -4,8 +4,6 @@ using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using VariableMapper.Common;
-using System;
-using System.Linq;
 
 namespace VariableMapper.Tests
 {
@@ -42,7 +40,8 @@ namespace VariableMapper.Tests
             var expectedResult = File.ReadAllText(resultFilePath);
             var result = vm.GetVariableMappingsForComponent(mappingTable, "zhulien");
 
-            Assert.AreEqual(expectedResult, result);
+            Assert.AreEqual(4, result.VariablesCounts);
+            Assert.AreEqual(expectedResult, result.VariableMappings);
         }
 
         [TestMethod]
@@ -106,7 +105,8 @@ namespace VariableMapper.Tests
             var expectedResult = File.ReadAllText(resultFilePath);
             var result = vm.GetVariableMappingsForComponent(mappingTable, "zhulien");
 
-            Assert.AreEqual(expectedResult, result);
+            Assert.AreEqual(14, result.VariablesCounts);
+            Assert.AreEqual(expectedResult, result.VariableMappings);
         }
     }
 }

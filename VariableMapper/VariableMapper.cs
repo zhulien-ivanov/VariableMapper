@@ -112,6 +112,18 @@ namespace VariableMapper
             return colorVariables;
         }
 
+        public string StripCommentBlocksFromLessFile(string filePath)
+        {
+            var multilineCommentPattern = @"\/\*[\s\S]*?\*\/";
+
+            var multilineCommentRegex = new Regex(multilineCommentPattern);
+
+            var lessContent = File.ReadAllText(filePath);
+            var strippedContent = multilineCommentRegex.Replace(lessContent, string.Empty);
+
+            return strippedContent;
+        }
+
         public string GetStrippedLessStringForComponent(string filePath)
         {
             string containsFunctionsPattern = @"(?:(:?.*@.*)|(?:.*[(][)].*)){";
@@ -132,7 +144,9 @@ namespace VariableMapper
 
             var propertyRegex = new Regex(propertyPattern);
 
-            var colorVariablesForComponent = GetColorVariablesForComponent(GetAllFlattenedVariablesForComponent(GetAllRawVariablesForComponent(filePath)));
+            var rawVariablesForComponent = this.GetAllRawVariablesForComponent(filePath);
+            var flattenedVariablesForComponent = this.GetAllFlattenedVariablesForComponent(rawVariablesForComponent);
+            var colorVariablesForComponent = this.GetColorVariablesForComponent(flattenedVariablesForComponent);
 
             var sb = new StringBuilder();
 
@@ -426,6 +440,26 @@ namespace VariableMapper
             return variableMapping;
         }
 
+        public void StripCommentBlocksFromLessFiles(string directoryInputPath, string directoryOuputPath)
+        {
+            if (!Directory.Exists(directoryOuputPath))
+            {
+                Directory.CreateDirectory(directoryOuputPath);
+            }
+
+            var directoryFiles = Directory.GetFiles(directoryInputPath);
+
+            string fileName;
+
+            foreach (var filePath in directoryFiles)
+            {
+                fileName = filePath.Substring(filePath.LastIndexOf("\\") + 1);
+
+                var strippedLessString = this.StripCommentBlocksFromLessFile(filePath);
+                File.WriteAllText(directoryOuputPath + fileName, strippedLessString);
+            }
+        }
+
         public void GenerateStrippedLessFiles(string directoryInputPath, string directoryOuputPath)
         {
             if (!Directory.Exists(directoryOuputPath))
@@ -447,7 +481,7 @@ namespace VariableMapper
                 Console.ResetColor();
                 Console.WriteLine(">:");
 
-                var strippedLessString = GetStrippedLessStringForComponent(filePath);
+                var strippedLessString = this.GetStrippedLessStringForComponent(filePath);
                 File.WriteAllText(directoryOuputPath + fileName, strippedLessString);
 
                 Console.WriteLine();
@@ -495,7 +529,8 @@ namespace VariableMapper
                 fileNameWithExtension = filePath.Substring(filePath.LastIndexOf("\\") + 1);
                 fileName = fileNameWithExtension.Substring(0, fileNameWithExtension.Length - 4);
 
-                var mappings = GetVariableMappingsForComponent(ConstructVariableMappingsTableForComponent(filePath), fileName);
+                var mappingTable = this.ConstructVariableMappingsTableForComponent(filePath);
+                var mappings = this.GetVariableMappingsForComponent(mappingTable, fileName);
 
                 File.WriteAllText(directoryOuputPath + fileName + ".txt", mappings.VariableMappings);
             }

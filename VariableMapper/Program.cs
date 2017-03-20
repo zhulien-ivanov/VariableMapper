@@ -5,6 +5,7 @@ namespace VariableMapper
     public class Program
     {
         private static string lessInputs = @"..\..\Inputs\";
+        private static string lessInputsStripped = @"..\..\Inputs\Stripped";
         private static string lessInputsMapped = @"..\..\Inputs\Mapped\";
         private static string lessOutput = @"..\..\Outputs\";
         private static string mappingsOutput = @"..\..\Outputs\VariableMappings\";
@@ -13,7 +14,8 @@ namespace VariableMapper
         {
             var variableMapper = new VariableMapper();
 
-            variableMapper.GenerateStrippedLessFiles(lessInputs, lessInputsMapped);
+            variableMapper.StripCommentBlocksFromLessFiles(lessInputs, lessInputsStripped);
+            variableMapper.GenerateStrippedLessFiles(lessInputsStripped, lessInputsMapped);
             variableMapper.ParseStrippedLessFilesToCss(lessInputsMapped, lessOutput);
             variableMapper.ConvertParsedCssFilesToVariableMappings(lessOutput, mappingsOutput);
 

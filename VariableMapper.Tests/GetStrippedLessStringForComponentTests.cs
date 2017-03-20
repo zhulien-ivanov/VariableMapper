@@ -15,8 +15,8 @@ namespace VariableMapper.Tests
 
             var vm = new VariableMapper(dummyProperty);
 
-            var filePath = @"..\..\Tests\Inputs\testFile.less";
-            var resultFilePath = @"..\..\Tests\Inputs\testFile-result.less";
+            var filePath = @"..\..\Tests\Inputs\Stripped\testFile.less";
+            var resultFilePath = @"..\..\Tests\Inputs\Stripped\testFile-result.less";
 
             var expectedResult = File.ReadAllText(resultFilePath).Trim();
 

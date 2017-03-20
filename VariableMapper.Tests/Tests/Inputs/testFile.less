@@ -9,15 +9,16 @@
 @search-box-input-2-z-index: 1;
 @search-box-input-icon-z-index: 7;
 
+/*
 @search-mb-event-details-buttons-button-background-color: @color_kb;
 @search-mb-event-details-buttons-button-border-color: @color_k3;
-@search-mb-event-details-buttons-button-hover-background-color: @search-mb-event-details-buttons-button-border-color;
+@search-mb-event-details-buttons-button-hover-background-color: @search-mb-event-details-buttons-button-border-color;*/
 
 @search-box-button-color: @color_k4;
 @search-box-button-hover-color: @color_k1;
 
-@search-z-index: 1000;
-@search-background-color: @color_k1;
+/*@search-z-index: 1000;
+@search-background-color: @color_k1;*/
 @search-border-color: @color_k5;
 
 @search-header-close-color: @color_k5;
@@ -25,8 +26,8 @@
 
 @search-group-header-color: @color_k5;
 @search-group-header-bottom-border-color: @color_k3;
-@search-group-header-text-sporticon-top: 0;
-
+/*@search-group-header-text-sporticon-top: 0;
+*/
 @search-footer-link-color: @search-results-live-header-link-color;
 @search-footer-link-hover-color: @search-results-live-header-link-hover-color;
 
@@ -41,10 +42,11 @@
 .search-box__input {
     margin-right: 0 !important;
     position: absolute;
-    width: calc(~"24.5% - 25px");
+    /*
+	width: calc(~"24.5% - 25px");
     padding-right: 30px !important;
     -ms-text-overflow: ellipsis;
-    -o-text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;*/
     text-overflow: ellipsis;
 }
 
@@ -66,8 +68,10 @@
 }
 
 .round-borders (@radius) {
+  /*
   border-radius: @radius;
   -moz-border-radius: @radius;
+  */
   -webkit-border-radius: @radius;
 }
 

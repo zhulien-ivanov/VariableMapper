@@ -59,6 +59,7 @@
     <Compile Include="GetStrippedLessStringForComponentTests.cs" />
     <Compile Include="ConstructVariableMappingsTableForComponentTests.cs" />
     <Compile Include="GetVariableMappingsForComponentTests.cs" />
+    <Compile Include="StripCommentBlocksFromLessFileTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VariableMapper.Common\VariableMapper.Common.csproj">

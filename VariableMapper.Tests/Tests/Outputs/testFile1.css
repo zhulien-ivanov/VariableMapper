@@ -1,0 +1,19 @@
+.select1 {
+  /*color: @var1;*/
+  width: 1;
+  /*background-color: @var2;*/
+  /*border-top: 1px solid @var4;*/  
+}
+#select2 {
+  /*color: @var1;*/
+  width: 1;
+  /*border: 1px solid @var2;*/ 
+  /*background-color: @var3;*/
+  /*border-top: 1px solid @var4 !important;*/   
+}
+select3 > a {
+  /*border: 1px solid @var1;*/
+  width: 1;  
+  /*background-color: @var3;*/
+  /*color: @var3;*/  
+}

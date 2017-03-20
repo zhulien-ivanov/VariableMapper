@@ -11,14 +11,52 @@ namespace VariableMapper.Tests
     public class ConstructVariableMappingsTableForComponentTests
     {
         [TestMethod]
-        public void ConstructVariableMappingsTableForComponentWorksCorrectly()
+        public void ConstructVariableMappingsTableForComponentWorksCorrectly1()
         {
             var dummyProperty = "width: 1;";
             var variablePlaceholder = "{var}";
 
             var vm = new VariableMapper(dummyProperty);
 
-            var filePath = @"..\..\Tests\Outputs\testFile.css";
+            var filePath = @"..\..\Tests\Outputs\testFile1.css";
+
+            var expectedMappingTable = new Dictionary<string, List<PropertyUsage>>();
+            expectedMappingTable["@var1"] = new List<PropertyUsage>();
+            expectedMappingTable["@var1"].Add(new PropertyUsage(".select1", $"color: {variablePlaceholder}"));
+            expectedMappingTable["@var2"] = new List<PropertyUsage>();
+            expectedMappingTable["@var2"].Add(new PropertyUsage(".select1", $"background-color: {variablePlaceholder}"));
+            expectedMappingTable["@var4"] = new List<PropertyUsage>();
+            expectedMappingTable["@var4"].Add(new PropertyUsage(".select1", $"border-top: 1px solid {variablePlaceholder}"));
+
+            expectedMappingTable["@var1"].Add(new PropertyUsage("#select2", $"color: {variablePlaceholder}"));
+            expectedMappingTable["@var2"].Add(new PropertyUsage("#select2", $"border: 1px solid {variablePlaceholder}"));
+            expectedMappingTable["@var3"] = new List<PropertyUsage>();
+            expectedMappingTable["@var3"].Add(new PropertyUsage("#select2", $"background-color: {variablePlaceholder}"));
+            expectedMappingTable["@var4"].Add(new PropertyUsage("#select2", $"border-top: 1px solid {variablePlaceholder} !important"));
+
+            expectedMappingTable["@var1"].Add(new PropertyUsage("select3 > a", $"border: 1px solid {variablePlaceholder}"));
+            expectedMappingTable["@var3"].Add(new PropertyUsage("select3 > a", $"background-color: {variablePlaceholder}"));
+            expectedMappingTable["@var3"].Add(new PropertyUsage("select3 > a", $"color: {variablePlaceholder}"));
+
+            var mappingTable = vm.ConstructVariableMappingsTableForComponent(filePath, variablePlaceholder);
+
+            CollectionAssert.AreEqual(expectedMappingTable.Keys.ToList(), mappingTable.Keys.ToList());
+
+            foreach (var pair in expectedMappingTable)
+            {
+                CollectionAssert.AreEqual(expectedMappingTable[pair.Key], mappingTable[pair.Key]);
+            }
+        }
+
+        [TestMethod]
+        public void ConstructVariableMappingsTableForComponentWorksCorrectly2()
+        {
+            var dummyProperty = "width: 1;";
+            var variablePlaceholder = "{var}";
+
+            var vm = new VariableMapper(dummyProperty);
+
+            var filePath = @"..\..\Tests\Outputs\testFile2.css";
 
             var expectedMappingTable = new Dictionary<string, List<PropertyUsage>>();
             expectedMappingTable["@search-box-button-color"] = new List<PropertyUsage>();

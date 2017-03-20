@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using VariableMapper.Common;
 using System;
+using System.Linq;
 
 namespace VariableMapper.Tests
 {
@@ -12,13 +13,46 @@ namespace VariableMapper.Tests
     public class GetVariableMappingsForComponentTests
     {
         [TestMethod]
-        public void GetVariableMappingsForComponentWorksCorrectly()
+        public void GetVariableMappingsForComponentWorksCorrectly1()
         {
             var variablePlaceholder = "{var}";
 
             var vm = new VariableMapper();
 
-            var resultFilePath = @"..\..\Tests\Outputs\VariableMappings\testFile.txt";
+            var resultFilePath = @"..\..\Tests\Outputs\VariableMappings\testFile1.txt";
+
+            var mappingTable = new Dictionary<string, List<PropertyUsage>>();
+            mappingTable["@var1"] = new List<PropertyUsage>();
+            mappingTable["@var1"].Add(new PropertyUsage(".select1", $"color: {variablePlaceholder}"));
+            mappingTable["@var2"] = new List<PropertyUsage>();
+            mappingTable["@var2"].Add(new PropertyUsage(".select1", $"background-color: {variablePlaceholder}"));
+            mappingTable["@var4"] = new List<PropertyUsage>();
+            mappingTable["@var4"].Add(new PropertyUsage(".select1", $"border-top: 1px solid {variablePlaceholder}"));
+
+            mappingTable["@var1"].Add(new PropertyUsage("#select2", $"color: {variablePlaceholder}"));
+            mappingTable["@var2"].Add(new PropertyUsage("#select2", $"border: 1px solid {variablePlaceholder}"));
+            mappingTable["@var3"] = new List<PropertyUsage>();
+            mappingTable["@var3"].Add(new PropertyUsage("#select2", $"background-color: {variablePlaceholder}"));
+            mappingTable["@var4"].Add(new PropertyUsage("#select2", $"border-top: 1px solid {variablePlaceholder} !important"));
+
+            mappingTable["@var1"].Add(new PropertyUsage("select3 > a", $"border: 1px solid {variablePlaceholder}"));
+            mappingTable["@var3"].Add(new PropertyUsage("select3 > a", $"background-color: {variablePlaceholder}"));
+            mappingTable["@var3"].Add(new PropertyUsage("select3 > a", $"color: {variablePlaceholder}"));
+
+            var expectedResult = File.ReadAllText(resultFilePath);
+            var result = vm.GetVariableMappingsForComponent(mappingTable, "zhulien");
+
+            Assert.AreEqual(expectedResult, result);
+        }
+
+        [TestMethod]
+        public void GetVariableMappingsForComponentWorksCorrectly2()
+        {
+            var variablePlaceholder = "{var}";
+
+            var vm = new VariableMapper();
+
+            var resultFilePath = @"..\..\Tests\Outputs\VariableMappings\testFile2.txt";
 
             var mappingTable = new Dictionary<string, List<PropertyUsage>>();
             mappingTable["@search-box-button-color"] = new List<PropertyUsage>();
@@ -72,7 +106,7 @@ namespace VariableMapper.Tests
             var expectedResult = File.ReadAllText(resultFilePath);
             var result = vm.GetVariableMappingsForComponent(mappingTable, "zhulien");
 
-            Assert.AreEqual(expectedResult, result.Replace("\r", ""));
+            Assert.AreEqual(expectedResult, result);
         }
     }
 }

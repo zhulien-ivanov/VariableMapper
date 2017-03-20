@@ -39,7 +39,7 @@ namespace VariableMapper
 
                     if (match.Success)
                     {
-                        mappedVariables.Add(match.Groups[1].Value, match.Groups[2].Value);
+                        mappedVariables[match.Groups[1].Value] = match.Groups[2].Value;
                     }
 
                     line = sr.ReadLine();
@@ -121,7 +121,7 @@ namespace VariableMapper
             string singleLineSelector = @"^[a-zA-Z0-9-_#>., :&*]+ {$";
             string multiLineSelector = @"^[a-zA-Z0-9-_#>., :&*]+,$";
 
-            string propertyPattern = @"[a-zA-Z0-9-_]+: .*(@[a-zA-Z0-9-_]+).*;";
+            string propertyPattern = @"^[a-zA-Z0-9-_]+: .*(@[a-zA-Z0-9-_]+).*;$";
 
             var containsFunctionsRegex = new Regex(containsFunctionsPattern);
 
@@ -149,6 +149,8 @@ namespace VariableMapper
 
                 while (line != null)
                 {
+                    line = line.Trim();
+
                     // Exclude functions(mixins, media queries, etc..)
                     if (containsFunctionsRegex.IsMatch(line))
                     {
@@ -163,6 +165,8 @@ namespace VariableMapper
                                 endOfFileReached = true;
                                 break;
                             }
+
+                            line = line.Trim();
 
                             if (line.Contains("{"))
                             {
@@ -180,7 +184,7 @@ namespace VariableMapper
                         {
                             sb.Append(line + " ");
 
-                            line = sr.ReadLine();
+                            line = sr.ReadLine().Trim();
                         }
 
                         if (singleLineSelectorRegex.IsMatch(line))
@@ -199,13 +203,15 @@ namespace VariableMapper
                                     break;
                                 }
 
+                                line = line.Trim();
+
                                 var propertyMatch = propertyRegex.Match(line);
 
                                 if (propertyMatch.Success)
                                 {
                                     if (colorVariablesForComponent.Contains(propertyMatch.Groups[1].Value))
                                     {
-                                        sb.AppendLine(string.Format("/*{0}*/{1}", line.Trim(), dummyProperty));
+                                        sb.AppendLine(string.Format("/*{0}*/{1}", line, dummyProperty));
                                     }
                                     else
                                     {
@@ -227,7 +233,7 @@ namespace VariableMapper
                                     {
                                         sb.Append(line + " ");
 
-                                        line = sr.ReadLine();
+                                        line = sr.ReadLine().Trim();
                                     }
 
                                     if (singleLineSelectorRegex.IsMatch(line))

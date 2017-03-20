@@ -5,7 +5,7 @@ namespace VariableMapper
     public class Program
     {
         private static string lessInputs = @"..\..\Inputs\";
-        private static string lessInputsStripped = @"..\..\Inputs\Stripped";
+        private static string lessInputsStripped = @"..\..\Inputs\Stripped\";
         private static string lessInputsMapped = @"..\..\Inputs\Mapped\";
         private static string lessOutput = @"..\..\Outputs\";
         private static string mappingsOutput = @"..\..\Outputs\VariableMappings\";

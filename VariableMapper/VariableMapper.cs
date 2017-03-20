@@ -128,9 +128,9 @@ namespace VariableMapper
         {
             string containsFunctionsPattern = @"(?:(:?.*@.*)|(?:.*[(][)].*)){";
 
-            string selectorPattern = @"^[a-zA-Z0-9-_#>., :&*]+(?: {|,)$";
-            string closingSelectorPattern = @"\s*}";
-            string singleLineSelector = @"^[a-zA-Z0-9-_#>., :&*]+ {$";
+            string selectorPattern = @"^[a-zA-Z0-9-_#>., :&*]+(?:\s*{|,)$";
+            string closingSelectorPattern = @"\s*}$";
+            string singleLineSelector = @"^[a-zA-Z0-9-_#>., :&*]+\s*{$";
             string multiLineSelector = @"^[a-zA-Z0-9-_#>., :&*]+,$";
 
             string propertyPattern = @"^[a-zA-Z0-9-_]+: .*(@[a-zA-Z0-9-_]+).*;$";
@@ -251,7 +251,7 @@ namespace VariableMapper
                                         bracketCounter++;
                                     }
                                 }
-                                else if (closingSelectorRegex.IsMatch(line))
+                                else if (closingSelectorRegex.IsMatch(line.TrimEnd()))
                                 {
                                     bracketCounter--;
 
@@ -521,6 +521,8 @@ namespace VariableMapper
 
             var directoryFiles = Directory.GetFiles(directoryInputPath);
 
+            int totalVariablesMapped = 0;
+
             string fileNameWithExtension;
             string fileName;
 
@@ -531,9 +533,33 @@ namespace VariableMapper
 
                 var mappingTable = this.ConstructVariableMappingsTableForComponent(filePath);
                 var mappings = this.GetVariableMappingsForComponent(mappingTable, fileName);
-
+                            
                 File.WriteAllText(directoryOuputPath + fileName + ".txt", mappings.VariableMappings);
+
+                Console.Write("    [");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write(String.Format("{0, 2}", mappings.VariablesCounts.ToString().PadLeft(2, '0')));
+                Console.ResetColor();
+                Console.Write("] variables mapped for <");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write(fileNameWithExtension);
+                Console.ResetColor();
+                Console.WriteLine(">.");
+
+                totalVariablesMapped += mappings.VariablesCounts;
             }
+
+            Console.WriteLine();
+            Console.Write("   [");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write(String.Format("{0, 3}", totalVariablesMapped.ToString().PadLeft(3, '0')));
+            Console.ResetColor();
+            Console.Write("] variables mapped in total for [");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write(directoryFiles.Length);
+            Console.ResetColor();
+            Console.WriteLine("] files.");
+            Console.WriteLine();
         }
     }
 }

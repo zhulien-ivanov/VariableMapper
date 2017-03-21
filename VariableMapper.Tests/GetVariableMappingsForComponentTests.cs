@@ -17,7 +17,8 @@ namespace VariableMapper.Tests
 
             var vm = new VariableMapper();
 
-            var resultFilePath = @"..\..\Tests\Outputs\VariableMappings\testFile1.txt";
+            var fileName = "testFile1";
+            var resultFilePath = @"..\..\Tests\Outputs\VariableMappings\" + fileName + ".txt";
 
             var mappingTable = new Dictionary<string, List<PropertyUsage>>();
             mappingTable["@var1"] = new List<PropertyUsage>();
@@ -35,10 +36,10 @@ namespace VariableMapper.Tests
 
             mappingTable["@var1"].Add(new PropertyUsage("select3 > a", $"border: 1px solid {variablePlaceholder}"));
             mappingTable["@var3"].Add(new PropertyUsage("select3 > a", $"background-color: {variablePlaceholder}"));
-            mappingTable["@var3"].Add(new PropertyUsage("select3 > a", $"color: {variablePlaceholder}"));
+            mappingTable["@var3"].Add(new PropertyUsage("select3 > a", $"color: {variablePlaceholder}"));            
 
             var expectedResult = File.ReadAllText(resultFilePath);
-            var result = vm.GetVariableMappingsForComponent(mappingTable, "zhulien");
+            var result = vm.GetVariableMappingsForComponent(mappingTable, fileName);
 
             Assert.AreEqual(4, result.VariablesCounts);
             Assert.AreEqual(expectedResult, result.VariableMappings);
@@ -51,7 +52,8 @@ namespace VariableMapper.Tests
 
             var vm = new VariableMapper();
 
-            var resultFilePath = @"..\..\Tests\Outputs\VariableMappings\testFile2.txt";
+            var fileName = "testFile2";
+            var resultFilePath = @"..\..\Tests\Outputs\VariableMappings\" + fileName + ".txt";
 
             var mappingTable = new Dictionary<string, List<PropertyUsage>>();
             mappingTable["@search-box-button-color"] = new List<PropertyUsage>();
@@ -103,7 +105,7 @@ namespace VariableMapper.Tests
             mappingTable["@mb-option-button-search-results-hover-color"].Add(new PropertyUsage(".mb-option-button-search-results:hover", $"color: {variablePlaceholder} !important"));
 
             var expectedResult = File.ReadAllText(resultFilePath);
-            var result = vm.GetVariableMappingsForComponent(mappingTable, "zhulien");
+            var result = vm.GetVariableMappingsForComponent(mappingTable, fileName);
 
             Assert.AreEqual(14, result.VariablesCounts);
             Assert.AreEqual(expectedResult, result.VariableMappings);

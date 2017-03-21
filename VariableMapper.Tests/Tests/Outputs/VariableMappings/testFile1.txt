@@ -1,34 +1,34 @@
 	{
-		name: '{NAME}',
-		value: 'zhulien',
+		name: 'testFile1',
+		value: 'testFile1',
 		variables: [
 			{
 				variableName: '@var1',
-				variableTitle: '{TITLE}',
+				variableTitle: '@var1',
 				variableSelector: ['.select1, #select2', 'select3 > a'],
 				propertyTemplate: [['color: {var}'], ['border: 1px solid {var}']],
-				imageSource: 'Images/{NAME}/@var1.png'
+				imageSource: 'Images/testFile1/@var1.png'
 			},
 			{
 				variableName: '@var2',
-				variableTitle: '{TITLE}',
+				variableTitle: '@var2',
 				variableSelector: ['.select1', '#select2'],
 				propertyTemplate: [['background-color: {var}'], ['border: 1px solid {var}']],
-				imageSource: 'Images/{NAME}/@var2.png'
+				imageSource: 'Images/testFile1/@var2.png'
 			},
 			{
 				variableName: '@var4',
-				variableTitle: '{TITLE}',
+				variableTitle: '@var4',
 				variableSelector: ['.select1', '#select2'],
 				propertyTemplate: [['border-top: 1px solid {var}'], ['border-top: 1px solid {var} !important']],
-				imageSource: 'Images/{NAME}/@var4.png'
+				imageSource: 'Images/testFile1/@var4.png'
 			},
 			{
 				variableName: '@var3',
-				variableTitle: '{TITLE}',
+				variableTitle: '@var3',
 				variableSelector: ['#select2, select3 > a', 'select3 > a'],
 				propertyTemplate: [['background-color: {var}'], ['color: {var}']],
-				imageSource: 'Images/{NAME}/@var3.png'
+				imageSource: 'Images/testFile1/@var3.png'
 			},
 		]
 	}

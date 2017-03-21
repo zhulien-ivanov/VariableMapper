@@ -146,10 +146,10 @@ namespace VariableMapper
         {
             string containsFunctionsPattern = @"(?:(:?.*@.*)|(?:.*[(][)].*)){";
 
-            string selectorPattern = @"^[a-zA-Z0-9-_#>., :&*]+(?:\s*{|,)$";
+            string selectorPattern = @"^[a-zA-Z0-9-_#>., :&*+~\[\]=\(\)]+(?:\s*{|,)$";
             string closingSelectorPattern = @"\s*}$";
-            string singleLineSelector = @"^[a-zA-Z0-9-_#>., :&*]+\s*{$";
-            string multiLineSelector = @"^[a-zA-Z0-9-_#>., :&*]+,$";
+            string singleLineSelector = @"^[a-zA-Z0-9-_#>., :&*+~\[\]=\(\)]+\s*{$";
+            string multiLineSelector = @"^[a-zA-Z0-9-_#>., :&*+~\[\]=\(\)]+,$";
 
             string propertyPattern = @"^[a-zA-Z0-9-_]+: .*(@[a-zA-Z0-9-_]+).*;$";
 
@@ -384,7 +384,7 @@ namespace VariableMapper
             var selectorStrings = new List<string>();
 
             sb.AppendLine(string.Format("{0}{1}", new string(spacingSymbol, spacingCount), "{"));
-            sb.AppendLine(string.Format("{0}{1}: '{2}',", new string(spacingSymbol, spacingCount + 1), "name", "{NAME}"));
+            sb.AppendLine(string.Format("{0}{1}: '{2}',", new string(spacingSymbol, spacingCount + 1), "name", fileName));
             sb.AppendLine(string.Format("{0}{1}: '{2}',", new string(spacingSymbol, spacingCount + 1), "value", fileName));
             sb.AppendLine(string.Format("{0}{1}: [", new string(spacingSymbol, spacingCount + 1), "variables"));
 
@@ -392,7 +392,7 @@ namespace VariableMapper
             {
                 sb.AppendLine(string.Format("{0}{1}", new string(spacingSymbol, spacingCount + 2), "{"));
                 sb.AppendLine(string.Format("{0}{1}: '{2}',", new string(spacingSymbol, spacingCount + 3), "variableName", variable.Key));
-                sb.AppendLine(string.Format("{0}{1}: '{2}',", new string(spacingSymbol, spacingCount + 3), "variableTitle", "{TITLE}"));
+                sb.AppendLine(string.Format("{0}{1}: '{2}',", new string(spacingSymbol, spacingCount + 3), "variableTitle", variable.Key));
 
                 mappedByPropertyDict = new Dictionary<string, List<string>>();
                 mappeByPropertyDictFlatten = new Dictionary<string, string>();
@@ -438,7 +438,7 @@ namespace VariableMapper
                 sb.AppendLine(string.Format("{0}{1}: ['{2}'],", new string(spacingSymbol, spacingCount + 3), "variableSelector", string.Join("', '", selectorStrings)));
                 sb.AppendLine(string.Format("{0}{1}: [['{2}']],", new string(spacingSymbol, spacingCount + 3), "propertyTemplate", string.Join("'], ['", propertyStrings)));
 
-                sb.AppendLine(string.Format("{0}{1}: '{2}{3}.png'", new string(spacingSymbol, spacingCount + 3), "imageSource", "Images/{NAME}/", variable.Key));
+                sb.AppendLine(string.Format("{0}{1}: '{2}{3}.png'", new string(spacingSymbol, spacingCount + 3), "imageSource", $"Images/{fileName}/", variable.Key));
                 sb.AppendLine(string.Format("{0}{1}", new string(spacingSymbol, spacingCount + 2), "},"));
 
                 mappedByPropertyDict.Clear();
@@ -546,7 +546,11 @@ namespace VariableMapper
                 fileName = fileNameWithExtension.Substring(0, fileNameWithExtension.Length - 5);
 
                 parsedCss = Less.Parse(File.ReadAllText(filePath));
-                File.WriteAllText(directoryOuputPath + fileName + ".css", parsedCss);
+
+                if (parsedCss != string.Empty)
+                {
+                    File.WriteAllText(directoryOuputPath + fileName + ".css", parsedCss);
+                }                
             }
         }
 
@@ -598,6 +602,25 @@ namespace VariableMapper
             Console.ResetColor();
             Console.WriteLine("] files.");
             Console.WriteLine();
+        }
+
+        public void ConcatenteParsedVariableMappings(string directoryInputPath, string outputFilePath, string fileName)
+        {
+            if (!Directory.Exists(outputFilePath))
+            {
+                Directory.CreateDirectory(outputFilePath);
+            }
+
+            var directoryFiles = Directory.GetFiles(directoryInputPath);
+
+            var mappings = new List<string>();
+
+            foreach (var filePath in directoryFiles)
+            {
+                mappings.Add(File.ReadAllText(filePath).TrimEnd());
+            }
+
+            File.WriteAllText(outputFilePath + fileName, string.Join($",{Environment.NewLine}", mappings));
         }
     }
 }

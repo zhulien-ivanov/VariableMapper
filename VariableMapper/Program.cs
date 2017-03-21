@@ -18,7 +18,7 @@ namespace VariableMapper
             var variableMapper = new VariableMapper();
             
             variableMapper.StripCommentBlocksFromLessFiles(lessInputs, lessInputsStripped);
-            //variableMapper.GenerateLessFilesWithImportedColors(lessInputsStripped, lessInputsColorFile, lessInputsWithColorsImported);
+            variableMapper.GenerateLessFilesWithImportedColors(lessInputsStripped, lessInputsColorFile, lessInputsWithColorsImported);
             variableMapper.GenerateStrippedLessFiles(lessInputsWithColorsImported, lessInputsMapped);
             variableMapper.ParseStrippedLessFilesToCss(lessInputsMapped, lessOutput);
             variableMapper.ConvertParsedCssFilesToVariableMappings(lessOutput, mappingsOutput);

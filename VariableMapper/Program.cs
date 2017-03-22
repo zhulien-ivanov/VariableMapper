@@ -19,7 +19,7 @@ namespace VariableMapper
             
             variableMapper.StripCommentBlocksFromLessFiles(lessInputs, lessInputsStripped);
             variableMapper.GenerateLessFilesWithImportedColors(lessInputsStripped, lessInputsColorFile, lessInputsWithColorsImported);
-            variableMapper.GenerateStrippedLessFiles(lessInputsWithColorsImported, lessInputsMapped);
+            variableMapper.GenerateStrippedLessFiles(lessInputsStripped, lessInputsWithColorsImported, lessInputsMapped);
             variableMapper.ParseStrippedLessFilesToCss(lessInputsMapped, lessOutput);
             variableMapper.ConvertParsedCssFilesToVariableMappings(lessOutput, mappingsOutput);
             variableMapper.ConcatenteParsedVariableMappings(mappingsOutput, concatenatedMappingsOutput, "all.txt");

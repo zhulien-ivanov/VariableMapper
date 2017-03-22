@@ -144,7 +144,7 @@ namespace VariableMapper
             return strippedContent;
         }
 
-        public string GetStrippedLessStringForComponent(string filePath)
+        public string GetStrippedLessStringForComponent(string filePath, HashSet<string> originalVariables)
         {
             string containsFunctionsPattern = @"(?:(:?.*@.*)|(?:.*[(][)].*)){";
 
@@ -175,7 +175,18 @@ namespace VariableMapper
             int bracketCounter = 0;
             bool endOfFileReached = false;
 
-            var skippedVariables = new HashSet<string>();
+            var variableUsage = new Dictionary<string, bool>();
+            var originalColorVariables = new HashSet<string>();
+
+            foreach (var variable in originalVariables)
+            {
+                variableUsage[variable] = false;
+
+                if (colorVariablesForComponent.Contains(variable))
+                {
+                    originalColorVariables.Add(variable);
+                }
+            }
 
             using (var sr = new StreamReader(filePath))
             {
@@ -241,22 +252,11 @@ namespace VariableMapper
 
                                     if (propertyMatch.Success)
                                     {
-                                        if (colorVariablesForComponent.Contains(propertyMatch.Groups[1].Value))
+                                        if (originalColorVariables.Contains(propertyMatch.Groups[1].Value))
                                         {
                                             sb.AppendLine(string.Format("/*{0}*/{1}", line, dummyProperty));
-                                        }
-                                        else
-                                        {
-                                            if (!skippedVariables.Contains(propertyMatch.Groups[1].Value))
-                                            {
-                                                skippedVariables.Add(propertyMatch.Groups[1].Value);
 
-                                                Console.Write("    Property <");
-                                                Console.ForegroundColor = ConsoleColor.DarkYellow;
-                                                Console.Write(propertyMatch.Groups[1].Value);
-                                                Console.ResetColor();
-                                                Console.WriteLine("> is excluded because it is either inherited or not a colour property.");
-                                            }
+                                            variableUsage[propertyMatch.Groups[1].Value] = true;
                                         }
                                     }
                                     else if (selectorRegex.IsMatch(line))
@@ -290,6 +290,18 @@ namespace VariableMapper
                     {
                         line = sr.ReadLine();
                     }
+                }
+            }
+
+            foreach (var pair in variableUsage)
+            {
+                if (!originalColorVariables.Contains(pair.Key) || !pair.Value)
+                {
+                    Console.Write("    Property <");
+                    Console.ForegroundColor = ConsoleColor.DarkYellow;
+                    Console.Write(pair.Key);
+                    Console.ResetColor();
+                    Console.WriteLine("> is excluded because it is either inherited, not used or not a colour property.");
                 }
             }
 
@@ -505,14 +517,14 @@ namespace VariableMapper
             }
         }
 
-        public void GenerateStrippedLessFiles(string directoryInputPath, string directoryOuputPath)
+        public void GenerateStrippedLessFiles(string strippedFilesInputPath, string colorsImportedFilesInputPath, string directoryOuputPath)
         {
             if (!Directory.Exists(directoryOuputPath))
             {
                 Directory.CreateDirectory(directoryOuputPath);
             }
 
-            var directoryFiles = Directory.GetFiles(directoryInputPath);
+            var directoryFiles = Directory.GetFiles(colorsImportedFilesInputPath);
 
             string fileName;
 
@@ -526,7 +538,9 @@ namespace VariableMapper
                 Console.ResetColor();
                 Console.WriteLine(">:");
 
-                var strippedLessString = this.GetStrippedLessStringForComponent(filePath);
+                var originalRawVariables = new HashSet<string>(this.GetAllRawVariablesForComponent(strippedFilesInputPath + fileName).Keys);             
+
+                var strippedLessString = this.GetStrippedLessStringForComponent(filePath, originalRawVariables);
                 File.WriteAllText(directoryOuputPath + fileName, strippedLessString);
 
                 Console.WriteLine();

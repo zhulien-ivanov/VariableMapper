@@ -171,6 +171,7 @@ namespace VariableMapper
             var sb = new StringBuilder();
 
             string line;
+            string lineTrimmed;
 
             int bracketCounter = 0;
             bool endOfFileReached = false;
@@ -246,29 +247,30 @@ namespace VariableMapper
                                         break;
                                     }
 
-                                    line = line.Trim();
+                                    lineTrimmed = line.Trim();
 
-                                    var propertyMatch = propertyRegex.Match(line);
+                                    var propertyMatch = propertyRegex.Match(lineTrimmed);
 
                                     if (propertyMatch.Success)
                                     {
                                         if (originalColorVariables.Contains(propertyMatch.Groups[1].Value))
                                         {
-                                            sb.AppendLine(string.Format("/*{0}*/{1}", line, dummyProperty));
+                                            sb.AppendLine(string.Format("/*{0}*/{1}", lineTrimmed, dummyProperty));
 
                                             variableUsage[propertyMatch.Groups[1].Value] = true;
                                         }
                                     }
-                                    else if (selectorRegex.IsMatch(line))
+                                    else if (selectorRegex.IsMatch(lineTrimmed))
                                     {
-                                        while (multiLineSelectorRegex.IsMatch(line))
+                                        while (multiLineSelectorRegex.IsMatch(lineTrimmed))
                                         {
                                             sb.Append(line + " ");
 
-                                            line = sr.ReadLine().Trim();
+                                            line = sr.ReadLine();
+                                            lineTrimmed = line.Trim();
                                         }
 
-                                        if (singleLineSelectorRegex.IsMatch(line))
+                                        if (singleLineSelectorRegex.IsMatch(lineTrimmed))
                                         {
                                             sb.AppendLine(line);
 

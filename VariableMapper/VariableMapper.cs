@@ -293,8 +293,8 @@ namespace VariableMapper
 
         public Dictionary<string, List<PropertyUsage>> ConstructVariableMappingsTableForComponent(string filePath, string variablePlaceholder = "{var}")
         {
-            string cssSingleLineSelector = @"^([a-zA-Z0-9-_#>., :*]+) {$";
-            string cssMultiLineSelector = @"^([a-zA-Z0-9-_#>., :*]+,)$";
+            string cssSingleLineSelector = @"^([a-zA-Z0-9-_#>., :*+~\[\]=\(\)]+) {$";
+            string cssMultiLineSelector = @"^([a-zA-Z0-9-_#>., :*+~\[\]=\(\)]+,)$";
             string cssPropertySelector = @"^\/\*(.*: .*(@[a-zA-Z0-9-_]+).*);\*\/$";
 
             var cssSingleLineSelectorRegex = new Regex(cssSingleLineSelector);

@@ -183,44 +183,11 @@ namespace VariableMapper
 
                 while (line != null)
                 {
-                    // Exclude functions(mixins, media queries, etc..)
-                    if (containsFunctionsRegex.IsMatch(line))
+                    if (line != string.Empty)
                     {
-                        bracketCounter++;
-
-                        while (bracketCounter != 0)
+                        // Exclude functions(mixins, media queries, etc..)
+                        if (containsFunctionsRegex.IsMatch(line))
                         {
-                            line = sr.ReadLine();
-
-                            if (line == null)
-                            {
-                                endOfFileReached = true;
-                                break;
-                            }
-
-                            if (line.Contains("{"))
-                            {
-                                bracketCounter++;
-                            }
-                            else if (line.Contains("}"))
-                            {
-                                bracketCounter--;
-                            }
-                        }
-                    }
-                    else if (selectorRegex.IsMatch(line))
-                    {
-                        while (multiLineSelectorRegex.IsMatch(line))
-                        {
-                            sb.Append(line + " ");
-
-                            line = sr.ReadLine();
-                        }
-
-                        if (singleLineSelectorRegex.IsMatch(line))
-                        {
-                            sb.AppendLine(line);
-
                             bracketCounter++;
 
                             while (bracketCounter != 0)
@@ -233,49 +200,87 @@ namespace VariableMapper
                                     break;
                                 }
 
-                                var propertyMatch = propertyRegex.Match(line.Trim());
-
-                                if (propertyMatch.Success)
+                                if (line.Contains("{"))
                                 {
-                                    if (colorVariablesForComponent.Contains(propertyMatch.Groups[1].Value))
-                                    {
-                                        sb.AppendLine(string.Format("/*{0}*/{1}", line.Trim(), dummyProperty));
-                                    }
-                                    else
-                                    {
-                                        if (!skippedVariables.Contains(propertyMatch.Groups[1].Value))
-                                        {
-                                            skippedVariables.Add(propertyMatch.Groups[1].Value);
-
-                                            Console.Write("    Property <");
-                                            Console.ForegroundColor = ConsoleColor.DarkYellow;
-                                            Console.Write(propertyMatch.Groups[1].Value);
-                                            Console.ResetColor();
-                                            Console.WriteLine("> is excluded because it is either inherited or not a colour property.");
-                                        }
-                                    }
+                                    bracketCounter++;
                                 }
-                                else if (selectorRegex.IsMatch(line))
-                                {
-                                    while (multiLineSelectorRegex.IsMatch(line))
-                                    {
-                                        sb.Append(line + " ");
-
-                                        line = sr.ReadLine();
-                                    }
-
-                                    if (singleLineSelectorRegex.IsMatch(line))
-                                    {
-                                        sb.AppendLine(line);
-
-                                        bracketCounter++;
-                                    }
-                                }
-                                else if (closingSelectorRegex.IsMatch(line.TrimEnd()))
+                                else if (line.Contains("}"))
                                 {
                                     bracketCounter--;
+                                }
+                            }
+                        }
+                        else if (selectorRegex.IsMatch(line))
+                        {
+                            while (multiLineSelectorRegex.IsMatch(line))
+                            {
+                                sb.Append(line + " ");
 
-                                    sb.AppendLine(line);
+                                line = sr.ReadLine();
+                            }
+
+                            if (singleLineSelectorRegex.IsMatch(line))
+                            {
+                                sb.AppendLine(line);
+
+                                bracketCounter++;
+
+                                while (bracketCounter != 0)
+                                {
+                                    line = sr.ReadLine();
+
+                                    if (line == null)
+                                    {
+                                        endOfFileReached = true;
+                                        break;
+                                    }
+
+                                    line = line.Trim();
+
+                                    var propertyMatch = propertyRegex.Match(line);
+
+                                    if (propertyMatch.Success)
+                                    {
+                                        if (colorVariablesForComponent.Contains(propertyMatch.Groups[1].Value))
+                                        {
+                                            sb.AppendLine(string.Format("/*{0}*/{1}", line, dummyProperty));
+                                        }
+                                        else
+                                        {
+                                            if (!skippedVariables.Contains(propertyMatch.Groups[1].Value))
+                                            {
+                                                skippedVariables.Add(propertyMatch.Groups[1].Value);
+
+                                                Console.Write("    Property <");
+                                                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                                                Console.Write(propertyMatch.Groups[1].Value);
+                                                Console.ResetColor();
+                                                Console.WriteLine("> is excluded because it is either inherited or not a colour property.");
+                                            }
+                                        }
+                                    }
+                                    else if (selectorRegex.IsMatch(line))
+                                    {
+                                        while (multiLineSelectorRegex.IsMatch(line))
+                                        {
+                                            sb.Append(line + " ");
+
+                                            line = sr.ReadLine().Trim();
+                                        }
+
+                                        if (singleLineSelectorRegex.IsMatch(line))
+                                        {
+                                            sb.AppendLine(line);
+
+                                            bracketCounter++;
+                                        }
+                                    }
+                                    else if (closingSelectorRegex.IsMatch(line))
+                                    {
+                                        bracketCounter--;
+
+                                        sb.AppendLine(line);
+                                    }
                                 }
                             }
                         }
@@ -552,7 +557,7 @@ namespace VariableMapper
                 if (parsedCss != string.Empty)
                 {
                     File.WriteAllText(directoryOuputPath + fileName + ".css", parsedCss);
-                }                
+                }
             }
         }
 
@@ -577,7 +582,7 @@ namespace VariableMapper
 
                 var mappingTable = this.ConstructVariableMappingsTableForComponent(filePath);
                 var mappings = this.GetVariableMappingsForComponent(mappingTable, fileName);
-                            
+
                 File.WriteAllText(directoryOuputPath + fileName + ".txt", mappings.VariableMappings);
 
                 Console.Write("    [");

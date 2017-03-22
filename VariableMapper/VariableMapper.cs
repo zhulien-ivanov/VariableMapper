@@ -35,6 +35,8 @@ namespace VariableMapper
 
                 while (line != null)
                 {
+                    line = line.Trim();
+
                     var match = variableRegex.Match(line);
 
                     if (match.Success)

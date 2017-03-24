@@ -22,6 +22,7 @@ namespace VariableMapper.Tests
             inputDictionary.Add("@variable6", "rgba(15, 15, 15, 0.5)");
             inputDictionary.Add("@variable7", "1px solid @color_g1");
             inputDictionary.Add("@variable8", "@missingVariable");
+            inputDictionary.Add("@variable9", "1px solid @missingVariable");
             inputDictionary.Add("@var2", "3em");
             inputDictionary.Add("@var3", "#ccc");
             inputDictionary.Add("@var4", "1px solid #FAFAFA");

@@ -77,7 +77,7 @@ namespace VariableMapper
                 flattenedMappedVariables[dictKey] = this.ResolveVariable(dictKey, flattenedMappedVariables);
             }
 
-            return flattenedMappedVariables;        
+            return flattenedMappedVariables;
         }
 
         public string ResolveVariable(string variableKey, Dictionary<string, string> flattenedVariables)
@@ -106,11 +106,11 @@ namespace VariableMapper
                     finalValue = this.ResolveVariable(matchedString, flattenedVariables);
 
                     var matchedStringRegex = new Regex(matchedString);
-                    result = matchedStringRegex.Replace(result, finalValue, 1);                    
+                    result = matchedStringRegex.Replace(result, finalValue, 1);
                 }
             }
 
-            return result;    
+            return result;
         }
 
         public HashSet<string> GetColorVariablesForComponent(Dictionary<string, string> flattenedVariables)
@@ -172,7 +172,9 @@ namespace VariableMapper
             string singleLineSelector = @"^[a-zA-Z0-9-_#>., :&*+~\[\]=\(\)]+\s*{$";
             string multiLineSelector = @"^[a-zA-Z0-9-_#>., :&*+~\[\]=\(\)]+,$";
 
-            string propertyPattern = @"^[a-zA-Z0-9-_]+: .*(@[a-zA-Z0-9-_]+).*;$";
+            //string propertyPattern = @"^[a-zA-Z0-9-_]+: .*(@[a-zA-Z0-9-_]+).*;$";
+            string propertyPattern = @"^[a-zA-Z0-9-_]+: ([\s\S]+);$";
+            string variablePattern = @"(@[a-zA-Z0-9-_]+)";
 
             var containsFunctionsRegex = new Regex(containsFunctionsPattern);
 
@@ -182,6 +184,7 @@ namespace VariableMapper
             var multiLineSelectorRegex = new Regex(multiLineSelector);
 
             var propertyRegex = new Regex(propertyPattern);
+            var variableRegex = new Regex(variablePattern);
 
             var rawVariablesForComponent = this.GetAllRawVariablesForComponent(filePath);
             var flattenedVariablesForComponent = this.GetAllFlattenedVariablesForComponent(rawVariablesForComponent);
@@ -196,7 +199,7 @@ namespace VariableMapper
             bool endOfFileReached = false;
 
             var variableUsage = new Dictionary<string, bool>();
-            var originalColorVariables = new HashSet<string>();
+            var originalColorVariables = new HashSet<string>();                              
 
             foreach (var variable in originalVariables)
             {
@@ -272,11 +275,58 @@ namespace VariableMapper
 
                                     if (propertyMatch.Success)
                                     {
-                                        if (originalColorVariables.Contains(propertyMatch.Groups[1].Value))
-                                        {
-                                            sb.AppendLine(string.Format("/*{0}*/{1}", lineTrimmed, dummyProperty));
+                                        var lineCopy = lineTrimmed;
+                                        var properties = propertyMatch.Groups[1].Value;
 
-                                            variableUsage[propertyMatch.Groups[1].Value] = true;
+                                        var matchedVariables = variableRegex.Matches(properties);
+
+                                        foreach (var match in matchedVariables)
+                                        {
+                                            var matchedString = match.ToString();
+
+                                            if (!originalColorVariables.Contains(matchedString))
+                                            {
+                                                if (flattenedVariablesForComponent.ContainsKey(matchedString))
+                                                {
+                                                    var matchedStringRegex = new Regex(matchedString);
+                                                    lineCopy = matchedStringRegex.Replace(lineCopy, flattenedVariablesForComponent[matchedString], 1);
+                                                }
+                                            }
+                                        }
+
+                                        matchedVariables = variableRegex.Matches(lineCopy);
+
+                                        var uniqueVariables = new HashSet<string>();
+
+                                        foreach (var match in matchedVariables)
+                                        {
+                                            var matchedString = match.ToString();
+
+                                            if (!uniqueVariables.Contains(matchedString))
+                                            {
+                                                uniqueVariables.Add(matchedString);
+                                            }
+                                        }
+
+                                        if (uniqueVariables.Count == 1)
+                                        {
+                                            var variable = uniqueVariables.First();
+
+                                            if (originalColorVariables.Contains(variable))
+                                            {
+                                                sb.AppendLine(string.Format("/*{0}*/{1}", lineCopy, dummyProperty));
+
+                                                variableUsage[variable] = true;
+                                            }
+                                        }
+                                        else if (uniqueVariables.Count > 1)
+                                        {
+                                            // Complex style involving either more than one color variable or inherited variables which cant be resolved.
+                                            Console.Write("    Line <");
+                                            Console.ForegroundColor = ConsoleColor.Magenta;
+                                            Console.Write(lineCopy);
+                                            Console.ResetColor();
+                                            Console.WriteLine("> skipped due to complex mapping.");
                                         }
                                     }
                                     else if (selectorRegex.IsMatch(lineTrimmed))
@@ -559,7 +609,7 @@ namespace VariableMapper
                 Console.ResetColor();
                 Console.WriteLine(">:");
 
-                var originalRawVariables = new HashSet<string>(this.GetAllRawVariablesForComponent(strippedFilesInputPath + fileName).Keys);             
+                var originalRawVariables = new HashSet<string>(this.GetAllRawVariablesForComponent(strippedFilesInputPath + fileName).Keys);
 
                 var strippedLessString = this.GetStrippedLessStringForComponent(filePath, originalRawVariables);
                 File.WriteAllText(directoryOuputPath + fileName, strippedLessString);

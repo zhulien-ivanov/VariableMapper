@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using dotless.Core;
 
 using VariableMapper.Common;
+using System.Linq;
 
 namespace VariableMapper
 {
@@ -53,9 +54,6 @@ namespace VariableMapper
 
         public Dictionary<string, string> GetAllFlattenedVariablesForComponent(Dictionary<string, string> rawVariables)
         {
-            string includesVariablePattern = @".*(@[a-zA-Z0-9-_]+).*";
-            var includesVariableRegex = new Regex(includesVariablePattern);
-
             string variableValue;
 
             var flattenedMappedVariables = new Dictionary<string, string>();
@@ -73,26 +71,46 @@ namespace VariableMapper
                 flattenedMappedVariables[variableMapping.Key] = variableValue;
             }
 
-            // Handle nested variable flattening
-            Match includesVariableMatch;
-
-            foreach (var variableMapping in rawVariables)
+            // Handle nested variables flattening
+            foreach (var dictKey in flattenedMappedVariables.Keys.ToList())
             {
-                variableValue = variableMapping.Value;
+                flattenedMappedVariables[dictKey] = this.ResolveVariable(dictKey, flattenedMappedVariables);
+            }
 
-                includesVariableMatch = includesVariableRegex.Match(variableValue);
+            return flattenedMappedVariables;        
+        }
 
-                if (includesVariableMatch.Success)
+        public string ResolveVariable(string variableKey, Dictionary<string, string> flattenedVariables)
+        {
+            if (!flattenedVariables.ContainsKey(variableKey))
+            {
+                return variableKey;
+            }
+
+            string variableValue = flattenedVariables[variableKey];
+
+            string result = variableValue;
+            string finalValue;
+
+            string includesVariablePattern = @"(@[a-zA-Z0-9-_]+)";
+            var includesVariableRegex = new Regex(includesVariablePattern);
+
+            var includesVariableMatch = includesVariableRegex.Matches(variableValue);
+
+            foreach (var match in includesVariableMatch)
+            {
+                var matchedString = match.ToString();
+
+                if (flattenedVariables.ContainsKey(matchedString))
                 {
-                    if (flattenedMappedVariables.ContainsKey(includesVariableMatch.Groups[1].Value))
-                    {
-                        variableValue = variableValue.Replace(includesVariableMatch.Groups[1].Value, flattenedMappedVariables[includesVariableMatch.Groups[1].Value]);
-                        flattenedMappedVariables[variableMapping.Key] = variableValue;
-                    }
+                    finalValue = this.ResolveVariable(matchedString, flattenedVariables);
+
+                    var matchedStringRegex = new Regex(matchedString);
+                    result = matchedStringRegex.Replace(result, finalValue, 1);                    
                 }
             }
 
-            return flattenedMappedVariables;
+            return result;    
         }
 
         public HashSet<string> GetColorVariablesForComponent(Dictionary<string, string> flattenedVariables)

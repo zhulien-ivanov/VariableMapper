@@ -8,7 +8,7 @@ namespace VariableMapper.Tests
     public class GetAllFlattenedVariablesForComponentTests
     {
         [TestMethod]
-        public void GetAllFlattenedVariablesForComponentWorksCorrectly()
+        public void GetAllFlattenedVariablesForComponentWorksCorrectly1()
         {
             var vm = new VariableMapper();
 
@@ -49,6 +49,48 @@ namespace VariableMapper.Tests
             expectedMappings.Add("@v3", "fade(fade(@color_g1, 40%), 40%)");
             expectedMappings.Add("@v4", "fade(@color_g1, 40%)");
             expectedMappings.Add("@var5", "bold");
+
+            var resultMappings = vm.GetAllFlattenedVariablesForComponent(inputDictionary);
+
+            CollectionAssert.AreEqual(expectedMappings, resultMappings);
+        }
+
+        [TestMethod]
+        public void GetAllFlattenedVariablesForComponentWorksCorrectly2()
+        {
+            var vm = new VariableMapper();
+
+            var inputDictionary = new Dictionary<string, string>();
+            inputDictionary.Add("@color_k1", "#ccc");
+            inputDictionary.Add("@color_w", "#fff");
+            inputDictionary.Add("@test5", "@borderProps @borderColor");
+            inputDictionary.Add("@borderWidth", "2px");
+            inputDictionary.Add("@borderColor", "@color_k1");
+            inputDictionary.Add("@borderType", "solid");
+            inputDictionary.Add("@borderProps", "@borderWidth @borderType");
+            inputDictionary.Add("@test1", "fade(@color_k1, 40%)");
+            inputDictionary.Add("@test2", "mix(@color_k1, @color_w, 10%)");
+            inputDictionary.Add("@test3", "@borderWidth solid @borderColor");
+            inputDictionary.Add("@test4", "@missingVariable solid @borderColor");
+            inputDictionary.Add("@genericBorder", "@genericBorderType @genericBorderColor");
+            inputDictionary.Add("@genericBorderColor", "@borderColor");
+            inputDictionary.Add("@genericBorderType", "@borderWidth @anotherMissingVariable");
+
+            var expectedMappings = new Dictionary<string, string>();
+            expectedMappings.Add("@color_k1", "#ccc");
+            expectedMappings.Add("@color_w", "#fff");
+            expectedMappings.Add("@test5", "2px solid #ccc");
+            expectedMappings.Add("@borderWidth", "2px");
+            expectedMappings.Add("@borderColor", "#ccc");
+            expectedMappings.Add("@borderType", "solid");
+            expectedMappings.Add("@borderProps", "2px solid");
+            expectedMappings.Add("@test1", "fade(#ccc, 40%)");
+            expectedMappings.Add("@test2", "mix(#ccc, #fff, 10%)");
+            expectedMappings.Add("@test3", "2px solid #ccc");
+            expectedMappings.Add("@test4", "@missingVariable solid #ccc");
+            expectedMappings.Add("@genericBorder", "2px @anotherMissingVariable #ccc");
+            expectedMappings.Add("@genericBorderColor", "#ccc");
+            expectedMappings.Add("@genericBorderType", "2px @anotherMissingVariable");
 
             var resultMappings = vm.GetAllFlattenedVariablesForComponent(inputDictionary);
 

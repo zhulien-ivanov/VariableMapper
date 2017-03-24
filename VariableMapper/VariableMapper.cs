@@ -97,7 +97,8 @@ namespace VariableMapper
 
         public HashSet<string> GetColorVariablesForComponent(Dictionary<string, string> flattenedVariables)
         {
-            string colorVariablePattern = @".*(?:(?:@color_[a-zA-Z0-9-_]+)|(?:#[0-9a-fA-F]{3,})|(?:rgb[a]?[(].*[)])|(?:transparent)).*";
+            //string colorVariablePattern = @".*(?:(?:@color_[a-zA-Z0-9-_]+)|(?:#[0-9a-fA-F]{3,})|(?:rgb[a]?[(].*[)])|(?:transparent)).*";
+            string colorVariablePattern = @"^(?:(?:@color_[a-zA-Z0-9-_]+)|(?:transparent)|(?:#[a-fA-F0-9]{3}\b)|(?:#[a-fA-F0-9]{6}\b)|(?:(?:(?:[a]?rgb[a]?)|(?:hsl[a]?)|(?:hsv[a]?))\(.*?\))|(?:[a-zA-Z0-0-_]+\(.*(?:(?:@color_[a-zA-Z0-9-_]+)|(?:transparent)|(?:#[a-fA-F0-9]{3}?)|(?:#[a-fA-F0-9]{6})|(?:(?:(?:[a]?rgb[a]?)|(?:hsl[a]?)|(?:hsv[a]?))\(.*?\))).*\)))$";
 
             var colorVariableRegex = new Regex(colorVariablePattern);
 
@@ -303,7 +304,7 @@ namespace VariableMapper
                     Console.ForegroundColor = ConsoleColor.DarkYellow;
                     Console.Write(pair.Key);
                     Console.ResetColor();
-                    Console.WriteLine("> is excluded because it is either inherited, not used or not a colour property.");
+                    Console.WriteLine("> is excluded because it is either inherited, not used or not a simple colour property.");
                 }
             }
 

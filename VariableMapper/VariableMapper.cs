@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
 using dotless.Core;
 
 using VariableMapper.Common;
-using System.Linq;
 
 namespace VariableMapper
 {
@@ -21,7 +21,174 @@ namespace VariableMapper
         }
         public VariableMapper() : this("width: 1;") { }
 
-        public Dictionary<string, string> GetAllRawVariablesForComponent(string filePath)
+        public void GenerateLessFilesWithImportedColors(string directoryInputPath, string colorsInputPath, string directoryOuputPath)
+        {
+            if (!Directory.Exists(directoryOuputPath))
+            {
+                Directory.CreateDirectory(directoryOuputPath);
+            }
+
+            var directoryFiles = Directory.GetFiles(directoryInputPath);
+
+            string fileName;
+
+            foreach (var filePath in directoryFiles)
+            {
+                fileName = filePath.Substring(filePath.LastIndexOf("\\") + 1);
+
+                var lessWithImportedColors = this.GetLessFileWithImportedColors(filePath, colorsInputPath);
+                File.WriteAllText(directoryOuputPath + fileName, lessWithImportedColors);
+            }
+        }
+
+        public void StripCommentBlocksFromLessFiles(string directoryInputPath, string directoryOuputPath)
+        {
+            if (!Directory.Exists(directoryOuputPath))
+            {
+                Directory.CreateDirectory(directoryOuputPath);
+            }
+
+            var directoryFiles = Directory.GetFiles(directoryInputPath);
+
+            string fileName;
+
+            foreach (var filePath in directoryFiles)
+            {
+                fileName = filePath.Substring(filePath.LastIndexOf("\\") + 1);
+
+                var strippedLessString = this.StripCommentBlocksFromLessFile(filePath);
+                File.WriteAllText(directoryOuputPath + fileName, strippedLessString);
+            }
+        }
+
+        public void GenerateStrippedLessFiles(string strippedFilesInputPath, string colorsImportedFilesInputPath, string directoryOuputPath)
+        {
+            if (!Directory.Exists(directoryOuputPath))
+            {
+                Directory.CreateDirectory(directoryOuputPath);
+            }
+
+            var directoryFiles = Directory.GetFiles(colorsImportedFilesInputPath);
+
+            string fileName;
+
+            foreach (var filePath in directoryFiles)
+            {
+                fileName = filePath.Substring(filePath.LastIndexOf("\\") + 1);
+
+                Console.Write("Start of mapping file <");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write(fileName);
+                Console.ResetColor();
+                Console.WriteLine(">:");
+
+                var originalRawVariables = new HashSet<string>(this.GetAllRawVariablesForComponent(strippedFilesInputPath + fileName).Keys);
+
+                var strippedLessString = this.GetStrippedLessStringForComponent(filePath, originalRawVariables);
+                File.WriteAllText(directoryOuputPath + fileName, strippedLessString);
+
+                Console.WriteLine();
+            }
+        }
+
+        public void ParseStrippedLessFilesToCss(string directoryInputPath, string directoryOuputPath)
+        {
+            if (!Directory.Exists(directoryOuputPath))
+            {
+                Directory.CreateDirectory(directoryOuputPath);
+            }
+
+            var directoryFiles = Directory.GetFiles(directoryInputPath);
+
+            string fileNameWithExtension;
+            string fileName;
+
+            string parsedCss;
+
+            foreach (var filePath in directoryFiles)
+            {
+                fileNameWithExtension = filePath.Substring(filePath.LastIndexOf("\\") + 1);
+                fileName = fileNameWithExtension.Substring(0, fileNameWithExtension.Length - 5);
+
+                parsedCss = Less.Parse(File.ReadAllText(filePath));
+
+                if (parsedCss != string.Empty)
+                {
+                    File.WriteAllText(directoryOuputPath + fileName + ".css", parsedCss);
+                }
+            }
+        }
+
+        public void ConvertParsedCssFilesToVariableMappings(string directoryInputPath, string directoryOuputPath)
+        {
+            if (!Directory.Exists(directoryOuputPath))
+            {
+                Directory.CreateDirectory(directoryOuputPath);
+            }
+
+            var directoryFiles = Directory.GetFiles(directoryInputPath);
+
+            int totalVariablesMapped = 0;
+
+            string fileNameWithExtension;
+            string fileName;
+
+            foreach (var filePath in directoryFiles)
+            {
+                fileNameWithExtension = filePath.Substring(filePath.LastIndexOf("\\") + 1);
+                fileName = fileNameWithExtension.Substring(0, fileNameWithExtension.Length - 4);
+
+                var mappingTable = this.ConstructVariableMappingsTableForComponent(filePath);
+                var mappings = this.GetVariableMappingsForComponent(mappingTable, fileName);
+
+                File.WriteAllText(directoryOuputPath + fileName + ".txt", mappings.VariableMappings);
+
+                Console.Write("    [");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write(String.Format("{0, 2}", mappings.VariablesCounts.ToString().PadLeft(2, '0')));
+                Console.ResetColor();
+                Console.Write("] variables mapped for <");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write(fileNameWithExtension);
+                Console.ResetColor();
+                Console.WriteLine(">.");
+
+                totalVariablesMapped += mappings.VariablesCounts;
+            }
+
+            Console.WriteLine();
+            Console.Write("   [");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write(String.Format("{0, 3}", totalVariablesMapped.ToString().PadLeft(3, '0')));
+            Console.ResetColor();
+            Console.Write("] variables mapped in total for [");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write(directoryFiles.Length);
+            Console.ResetColor();
+            Console.WriteLine("] files.");
+            Console.WriteLine();
+        }
+
+        public void ConcatenteParsedVariableMappings(string directoryInputPath, string outputFilePath, string fileName)
+        {
+            if (!Directory.Exists(outputFilePath))
+            {
+                Directory.CreateDirectory(outputFilePath);
+            }
+
+            var directoryFiles = Directory.GetFiles(directoryInputPath);
+
+            var mappings = new List<string>();
+
+            foreach (var filePath in directoryFiles)
+            {
+                mappings.Add(File.ReadAllText(filePath).TrimEnd());
+            }
+
+            File.WriteAllText(outputFilePath + fileName, string.Join($",{Environment.NewLine}", mappings));
+        }
+
+        internal Dictionary<string, string> GetAllRawVariablesForComponent(string filePath)
         {
             string variablePattern = @"^(@[a-zA-Z0-9-_]+):\s*(.*);";
             var variableRegex = new Regex(variablePattern);
@@ -52,7 +219,7 @@ namespace VariableMapper
             return mappedVariables;
         }
 
-        public Dictionary<string, string> GetAllFlattenedVariablesForComponent(Dictionary<string, string> rawVariables)
+        internal Dictionary<string, string> GetAllFlattenedVariablesForComponent(Dictionary<string, string> rawVariables)
         {
             string variableValue;
 
@@ -113,9 +280,8 @@ namespace VariableMapper
             return result;
         }
 
-        public HashSet<string> GetColorVariablesForComponent(Dictionary<string, string> flattenedVariables)
-        {
-            //string colorVariablePattern = @".*(?:(?:@color_[a-zA-Z0-9-_]+)|(?:#[0-9a-fA-F]{3,})|(?:rgb[a]?[(].*[)])|(?:transparent)).*";
+        internal HashSet<string> GetColorVariablesForComponent(Dictionary<string, string> flattenedVariables)
+        {            
             string colorVariablePattern = @"^(?:(?:@color_[a-zA-Z0-9-_]+)|(?:transparent)|(?:#[a-fA-F0-9]{3}\b)|(?:#[a-fA-F0-9]{6}\b)|(?:(?:(?:[a]?rgb[a]?)|(?:hsl[a]?)|(?:hsv[a]?))\(.*?\))|(?:[a-zA-Z0-0-_]+\(.*(?:(?:@color_[a-zA-Z0-9-_]+)|(?:transparent)|(?:#[a-fA-F0-9]{3}?)|(?:#[a-fA-F0-9]{6})|(?:(?:(?:[a]?rgb[a]?)|(?:hsl[a]?)|(?:hsv[a]?))\(.*?\))).*\)))$";
 
             var colorVariableRegex = new Regex(colorVariablePattern);
@@ -151,7 +317,7 @@ namespace VariableMapper
             return finalContent;
         }
 
-        public string StripCommentBlocksFromLessFile(string filePath)
+        internal string StripCommentBlocksFromLessFile(string filePath)
         {
             var multilineCommentPattern = @"\/\*[\s\S]*?\*\/";
 
@@ -163,7 +329,7 @@ namespace VariableMapper
             return strippedContent;
         }
 
-        public string GetStrippedLessStringForComponent(string filePath, HashSet<string> originalVariables)
+        internal string GetStrippedLessStringForComponent(string filePath, HashSet<string> originalVariables)
         {
             string containsFunctionsPattern = @"(?:(:?.*@.*)|(?:.*[(][)].*)){";
 
@@ -172,7 +338,6 @@ namespace VariableMapper
             string singleLineSelector = @"^[a-zA-Z0-9-_#>., :&*+~\[\]=\(\)]+\s*{$";
             string multiLineSelector = @"^[a-zA-Z0-9-_#>., :&*+~\[\]=\(\)]+,$";
 
-            //string propertyPattern = @"^[a-zA-Z0-9-_]+: .*(@[a-zA-Z0-9-_]+).*;$";
             string propertyPattern = @"^[a-zA-Z0-9-_]+: ([\s\S]+);$";
             string variablePattern = @"(@[a-zA-Z0-9-_]+)";
 
@@ -379,7 +544,7 @@ namespace VariableMapper
             return sb.ToString();
         }
 
-        public Dictionary<string, List<PropertyUsage>> ConstructVariableMappingsTableForComponent(string filePath, string variablePlaceholder = "{var}")
+        internal Dictionary<string, List<PropertyUsage>> ConstructVariableMappingsTableForComponent(string filePath, string variablePlaceholder = "{var}")
         {
             string cssSingleLineSelector = @"^([a-zA-Z0-9-_#>., :*+~\[\]=\(\)]+) {$";
             string cssMultiLineSelector = @"^([a-zA-Z0-9-_#>., :*+~\[\]=\(\)]+,)$";
@@ -458,7 +623,7 @@ namespace VariableMapper
             return variableMappings;
         }
 
-        public VariableMapping GetVariableMappingsForComponent(Dictionary<string, List<PropertyUsage>> mappingTable, string fileName)
+        internal VariableMapping GetVariableMappingsForComponent(Dictionary<string, List<PropertyUsage>> mappingTable, string fileName)
         {
             var spacingCount = 1;
             var spacingSymbol = '\t';
@@ -546,173 +711,6 @@ namespace VariableMapper
             var variableMapping = new VariableMapping(mappingTable.Count, sb.ToString());
 
             return variableMapping;
-        }
-
-        public void GenerateLessFilesWithImportedColors(string directoryInputPath, string colorsInputPath, string directoryOuputPath)
-        {
-            if (!Directory.Exists(directoryOuputPath))
-            {
-                Directory.CreateDirectory(directoryOuputPath);
-            }
-
-            var directoryFiles = Directory.GetFiles(directoryInputPath);
-
-            string fileName;
-
-            foreach (var filePath in directoryFiles)
-            {
-                fileName = filePath.Substring(filePath.LastIndexOf("\\") + 1);
-
-                var lessWithImportedColors = this.GetLessFileWithImportedColors(filePath, colorsInputPath);
-                File.WriteAllText(directoryOuputPath + fileName, lessWithImportedColors);
-            }
-        }
-
-        public void StripCommentBlocksFromLessFiles(string directoryInputPath, string directoryOuputPath)
-        {
-            if (!Directory.Exists(directoryOuputPath))
-            {
-                Directory.CreateDirectory(directoryOuputPath);
-            }
-
-            var directoryFiles = Directory.GetFiles(directoryInputPath);
-
-            string fileName;
-
-            foreach (var filePath in directoryFiles)
-            {
-                fileName = filePath.Substring(filePath.LastIndexOf("\\") + 1);
-
-                var strippedLessString = this.StripCommentBlocksFromLessFile(filePath);
-                File.WriteAllText(directoryOuputPath + fileName, strippedLessString);
-            }
-        }
-
-        public void GenerateStrippedLessFiles(string strippedFilesInputPath, string colorsImportedFilesInputPath, string directoryOuputPath)
-        {
-            if (!Directory.Exists(directoryOuputPath))
-            {
-                Directory.CreateDirectory(directoryOuputPath);
-            }
-
-            var directoryFiles = Directory.GetFiles(colorsImportedFilesInputPath);
-
-            string fileName;
-
-            foreach (var filePath in directoryFiles)
-            {
-                fileName = filePath.Substring(filePath.LastIndexOf("\\") + 1);
-
-                Console.Write("Start of mapping file <");
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write(fileName);
-                Console.ResetColor();
-                Console.WriteLine(">:");
-
-                var originalRawVariables = new HashSet<string>(this.GetAllRawVariablesForComponent(strippedFilesInputPath + fileName).Keys);
-
-                var strippedLessString = this.GetStrippedLessStringForComponent(filePath, originalRawVariables);
-                File.WriteAllText(directoryOuputPath + fileName, strippedLessString);
-
-                Console.WriteLine();
-            }
-        }
-
-        public void ParseStrippedLessFilesToCss(string directoryInputPath, string directoryOuputPath)
-        {
-            if (!Directory.Exists(directoryOuputPath))
-            {
-                Directory.CreateDirectory(directoryOuputPath);
-            }
-
-            var directoryFiles = Directory.GetFiles(directoryInputPath);
-
-            string fileNameWithExtension;
-            string fileName;
-
-            string parsedCss;
-
-            foreach (var filePath in directoryFiles)
-            {
-                fileNameWithExtension = filePath.Substring(filePath.LastIndexOf("\\") + 1);
-                fileName = fileNameWithExtension.Substring(0, fileNameWithExtension.Length - 5);
-
-                parsedCss = Less.Parse(File.ReadAllText(filePath));
-
-                if (parsedCss != string.Empty)
-                {
-                    File.WriteAllText(directoryOuputPath + fileName + ".css", parsedCss);
-                }
-            }
-        }
-
-        public void ConvertParsedCssFilesToVariableMappings(string directoryInputPath, string directoryOuputPath)
-        {
-            if (!Directory.Exists(directoryOuputPath))
-            {
-                Directory.CreateDirectory(directoryOuputPath);
-            }
-
-            var directoryFiles = Directory.GetFiles(directoryInputPath);
-
-            int totalVariablesMapped = 0;
-
-            string fileNameWithExtension;
-            string fileName;
-
-            foreach (var filePath in directoryFiles)
-            {
-                fileNameWithExtension = filePath.Substring(filePath.LastIndexOf("\\") + 1);
-                fileName = fileNameWithExtension.Substring(0, fileNameWithExtension.Length - 4);
-
-                var mappingTable = this.ConstructVariableMappingsTableForComponent(filePath);
-                var mappings = this.GetVariableMappingsForComponent(mappingTable, fileName);
-
-                File.WriteAllText(directoryOuputPath + fileName + ".txt", mappings.VariableMappings);
-
-                Console.Write("    [");
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write(String.Format("{0, 2}", mappings.VariablesCounts.ToString().PadLeft(2, '0')));
-                Console.ResetColor();
-                Console.Write("] variables mapped for <");
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Write(fileNameWithExtension);
-                Console.ResetColor();
-                Console.WriteLine(">.");
-
-                totalVariablesMapped += mappings.VariablesCounts;
-            }
-
-            Console.WriteLine();
-            Console.Write("   [");
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write(String.Format("{0, 3}", totalVariablesMapped.ToString().PadLeft(3, '0')));
-            Console.ResetColor();
-            Console.Write("] variables mapped in total for [");
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write(directoryFiles.Length);
-            Console.ResetColor();
-            Console.WriteLine("] files.");
-            Console.WriteLine();
-        }
-
-        public void ConcatenteParsedVariableMappings(string directoryInputPath, string outputFilePath, string fileName)
-        {
-            if (!Directory.Exists(outputFilePath))
-            {
-                Directory.CreateDirectory(outputFilePath);
-            }
-
-            var directoryFiles = Directory.GetFiles(directoryInputPath);
-
-            var mappings = new List<string>();
-
-            foreach (var filePath in directoryFiles)
-            {
-                mappings.Add(File.ReadAllText(filePath).TrimEnd());
-            }
-
-            File.WriteAllText(outputFilePath + fileName, string.Join($",{Environment.NewLine}", mappings));
         }
     }
 }

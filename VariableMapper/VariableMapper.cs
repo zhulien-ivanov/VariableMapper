@@ -277,7 +277,7 @@ namespace VariableMapper
             return flattenedMappedVariables;
         }
 
-        private string ResolveVariable(string variableKey, Dictionary<string, string> flattenedVariables)
+        internal string ResolveVariable(string variableKey, Dictionary<string, string> flattenedVariables)
         {
             if (!flattenedVariables.ContainsKey(variableKey))
             {

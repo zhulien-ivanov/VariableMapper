@@ -60,6 +60,7 @@
     <Compile Include="ConstructVariableMappingsTableForComponentTests.cs" />
     <Compile Include="GetVariableMappingsForComponentTests.cs" />
     <Compile Include="StripCommentBlocksFromLessFileTests.cs" />
+    <Compile Include="ResolveVariableTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VariableMapper.Common\VariableMapper.Common.csproj">

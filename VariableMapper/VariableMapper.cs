@@ -21,26 +21,6 @@ namespace VariableMapper
         }
         public VariableMapper() : this("width: 1;") { }
 
-        public void GenerateLessFilesWithImportedColors(string directoryInputPath, string colorsInputPath, string directoryOuputPath)
-        {
-            if (!Directory.Exists(directoryOuputPath))
-            {
-                Directory.CreateDirectory(directoryOuputPath);
-            }
-
-            var directoryFiles = Directory.GetFiles(directoryInputPath);
-
-            string fileName;
-
-            foreach (var filePath in directoryFiles)
-            {
-                fileName = filePath.Substring(filePath.LastIndexOf("\\") + 1);
-
-                var lessWithImportedColors = this.GetLessFileWithImportedColors(filePath, colorsInputPath);
-                File.WriteAllText(directoryOuputPath + fileName, lessWithImportedColors);
-            }
-        }
-
         public void StripCommentBlocksFromLessFiles(string directoryInputPath, string directoryOuputPath)
         {
             if (!Directory.Exists(directoryOuputPath))
@@ -58,6 +38,26 @@ namespace VariableMapper
 
                 var strippedLessString = this.StripCommentBlocksFromLessFile(filePath);
                 File.WriteAllText(directoryOuputPath + fileName, strippedLessString);
+            }
+        }
+
+        public void GenerateLessFilesWithImportedColors(string directoryInputPath, string colorsInputPath, string directoryOuputPath)
+        {
+            if (!Directory.Exists(directoryOuputPath))
+            {
+                Directory.CreateDirectory(directoryOuputPath);
+            }
+
+            var directoryFiles = Directory.GetFiles(directoryInputPath);
+
+            string fileName;
+
+            foreach (var filePath in directoryFiles)
+            {
+                fileName = filePath.Substring(filePath.LastIndexOf("\\") + 1);
+
+                var lessWithImportedColors = this.GetLessFileWithImportedColors(filePath, colorsInputPath);
+                File.WriteAllText(directoryOuputPath + fileName, lessWithImportedColors);
             }
         }
 
@@ -188,6 +188,36 @@ namespace VariableMapper
             File.WriteAllText(outputFilePath + fileName, string.Join($",{Environment.NewLine}", mappings));
         }
 
+        internal string StripCommentBlocksFromLessFile(string filePath)
+        {
+            var multilineCommentPattern = @"\/\*[\s\S]*?\*\/";
+
+            var multilineCommentRegex = new Regex(multilineCommentPattern);
+
+            var lessContent = File.ReadAllText(filePath);
+            var strippedContent = multilineCommentRegex.Replace(lessContent, string.Empty);
+
+            return strippedContent;
+        }
+
+        private string GetLessFileWithImportedColors(string fileInputPath, string colorsDirectoryPath)
+        {
+            var fileContent = File.ReadAllText(fileInputPath);
+
+            var sb = new StringBuilder();
+
+            var directoryFiles = Directory.GetFiles(colorsDirectoryPath);
+
+            foreach (var filePath in directoryFiles)
+            {
+                sb.AppendLine(File.ReadAllText(filePath));
+            }
+
+            var finalContent = sb.ToString() + fileContent;
+
+            return finalContent;
+        }
+
         internal Dictionary<string, string> GetAllRawVariablesForComponent(string filePath)
         {
             string variablePattern = @"^(@[a-zA-Z0-9-_]+):\s*(.*);";
@@ -247,7 +277,7 @@ namespace VariableMapper
             return flattenedMappedVariables;
         }
 
-        public string ResolveVariable(string variableKey, Dictionary<string, string> flattenedVariables)
+        private string ResolveVariable(string variableKey, Dictionary<string, string> flattenedVariables)
         {
             if (!flattenedVariables.ContainsKey(variableKey))
             {
@@ -297,37 +327,7 @@ namespace VariableMapper
             }
 
             return colorVariables;
-        }
-
-        public string GetLessFileWithImportedColors(string fileInputPath, string colorsDirectoryPath)
-        {
-            var fileContent = File.ReadAllText(fileInputPath);
-
-            var sb = new StringBuilder();
-
-            var directoryFiles = Directory.GetFiles(colorsDirectoryPath);
-
-            foreach (var filePath in directoryFiles)
-            {
-                sb.AppendLine(File.ReadAllText(filePath));
-            }
-
-            var finalContent = sb.ToString() + fileContent;
-
-            return finalContent;
-        }
-
-        internal string StripCommentBlocksFromLessFile(string filePath)
-        {
-            var multilineCommentPattern = @"\/\*[\s\S]*?\*\/";
-
-            var multilineCommentRegex = new Regex(multilineCommentPattern);
-
-            var lessContent = File.ReadAllText(filePath);
-            var strippedContent = multilineCommentRegex.Replace(lessContent, string.Empty);
-
-            return strippedContent;
-        }
+        }        
 
         internal string GetStrippedLessStringForComponent(string filePath, HashSet<string> originalVariables)
         {

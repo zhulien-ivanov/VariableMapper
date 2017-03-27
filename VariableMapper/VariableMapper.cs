@@ -334,7 +334,7 @@ namespace VariableMapper
             string containsFunctionsPattern = @"(?:(:?.*@.*)|(?:.*[(][)].*)){";
 
             string selectorPattern = @"^[a-zA-Z0-9-_#>., :&*+~\[\]=\(\)]+(?:\s*{|,)$";
-            string closingSelectorPattern = @"\s*}$";
+            string closingSelectorPattern = @"^}$";
             string singleLineSelector = @"^[a-zA-Z0-9-_#>., :&*+~\[\]=\(\)]+\s*{$";
             string multiLineSelector = @"^[a-zA-Z0-9-_#>., :&*+~\[\]=\(\)]+,$";
 
@@ -511,7 +511,7 @@ namespace VariableMapper
                                             bracketCounter++;
                                         }
                                     }
-                                    else if (closingSelectorRegex.IsMatch(line))
+                                    else if (closingSelectorRegex.IsMatch(lineTrimmed))
                                     {
                                         bracketCounter--;
 

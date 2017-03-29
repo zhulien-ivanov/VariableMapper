@@ -392,18 +392,19 @@ namespace VariableMapper
                             while (bracketCounter != 0)
                             {
                                 line = sr.ReadLine();
+                                lineTrimmed = line.Trim();
 
-                                if (line == null)
+                                if (lineTrimmed == null)
                                 {
                                     endOfFileReached = true;
                                     break;
                                 }
 
-                                if (line.Contains("{"))
+                                if (lineTrimmed.EndsWith("{"))
                                 {
                                     bracketCounter++;
                                 }
-                                else if (line.Contains("}"))
+                                else if (lineTrimmed.EndsWith("}"))
                                 {
                                     bracketCounter--;
                                 }

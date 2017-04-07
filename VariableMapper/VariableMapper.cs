@@ -364,6 +364,7 @@ namespace VariableMapper
             string lineTrimmed;
 
             int bracketCounter = 0;
+            int functionBracketCounter = 0;
             bool endOfFileReached = false;
 
             var variableUsage = new Dictionary<string, bool>();
@@ -390,9 +391,9 @@ namespace VariableMapper
                         // Exclude functions(mixins, media queries, etc..)
                         if (containsFunctionsRegex.IsMatch(line))
                         {
-                            bracketCounter++;
+                            functionBracketCounter++;
 
-                            while (bracketCounter != 0)
+                            while (functionBracketCounter != 0)
                             {
                                 line = sr.ReadLine();
                                                                 
@@ -406,11 +407,11 @@ namespace VariableMapper
 
                                 if (lineTrimmed.EndsWith("{"))
                                 {
-                                    bracketCounter++;
+                                    functionBracketCounter++;
                                 }
                                 else if (lineTrimmed.EndsWith("}"))
                                 {
-                                    bracketCounter--;
+                                    functionBracketCounter--;
                                 }
                             }
                         }
@@ -443,7 +444,34 @@ namespace VariableMapper
 
                                     var propertyMatch = propertyRegex.Match(lineTrimmed);
 
-                                    if (propertyMatch.Success)
+                                    // Exclude functions(mixins, media queries, etc..)
+                                    if (containsFunctionsRegex.IsMatch(lineTrimmed))
+                                    {
+                                        functionBracketCounter++;
+
+                                        while (functionBracketCounter != 0)
+                                        {
+                                            line = sr.ReadLine();
+
+                                            if (line == null)
+                                            {
+                                                endOfFileReached = true;
+                                                break;
+                                            }
+
+                                            lineTrimmed = line.Trim();
+
+                                            if (lineTrimmed.EndsWith("{"))
+                                            {
+                                                functionBracketCounter++;
+                                            }
+                                            else if (lineTrimmed.EndsWith("}"))
+                                            {
+                                                functionBracketCounter--;
+                                            }
+                                        }
+                                    }
+                                    else if (propertyMatch.Success)
                                     {
                                         var lineCopy = lineTrimmed;
                                         var properties = propertyMatch.Groups[1].Value;

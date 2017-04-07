@@ -444,34 +444,7 @@ namespace VariableMapper
 
                                     var propertyMatch = propertyRegex.Match(lineTrimmed);
 
-                                    // Exclude functions(mixins, media queries, etc..)
-                                    if (containsFunctionsRegex.IsMatch(lineTrimmed))
-                                    {
-                                        functionBracketCounter++;
-
-                                        while (functionBracketCounter != 0)
-                                        {
-                                            line = sr.ReadLine();
-
-                                            if (line == null)
-                                            {
-                                                endOfFileReached = true;
-                                                break;
-                                            }
-
-                                            lineTrimmed = line.Trim();
-
-                                            if (lineTrimmed.EndsWith("{"))
-                                            {
-                                                functionBracketCounter++;
-                                            }
-                                            else if (lineTrimmed.EndsWith("}"))
-                                            {
-                                                functionBracketCounter--;
-                                            }
-                                        }
-                                    }
-                                    else if (propertyMatch.Success)
+                                    if (propertyMatch.Success)
                                     {
                                         var lineCopy = lineTrimmed;
                                         var properties = propertyMatch.Groups[1].Value;
@@ -525,6 +498,33 @@ namespace VariableMapper
                                             Console.Write(lineCopy);
                                             Console.ResetColor();
                                             Console.WriteLine("> skipped due to complex mapping.");
+                                        }
+                                    }
+                                    // Exclude functions(mixins, media queries, etc..)
+                                    else if (containsFunctionsRegex.IsMatch(lineTrimmed))
+                                    {
+                                        functionBracketCounter++;
+
+                                        while (functionBracketCounter != 0)
+                                        {
+                                            line = sr.ReadLine();
+
+                                            if (line == null)
+                                            {
+                                                endOfFileReached = true;
+                                                break;
+                                            }
+
+                                            lineTrimmed = line.Trim();
+
+                                            if (lineTrimmed.EndsWith("{"))
+                                            {
+                                                functionBracketCounter++;
+                                            }
+                                            else if (lineTrimmed.EndsWith("}"))
+                                            {
+                                                functionBracketCounter--;
+                                            }
                                         }
                                     }
                                     else if (selectorRegex.IsMatch(lineTrimmed))

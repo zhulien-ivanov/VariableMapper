@@ -191,11 +191,14 @@ namespace VariableMapper
         internal string StripCommentBlocksFromLessFile(string filePath)
         {
             var multilineCommentPattern = @"\/\*[\s\S]*?\*\/";
+            var singleLineCommentPattern = @"\/\/.*";
 
             var multilineCommentRegex = new Regex(multilineCommentPattern);
+            var singleLineCommentRegex = new Regex(singleLineCommentPattern);
 
             var lessContent = File.ReadAllText(filePath);
             var strippedContent = multilineCommentRegex.Replace(lessContent, string.Empty);
+            strippedContent = singleLineCommentRegex.Replace(strippedContent, string.Empty);
 
             return strippedContent;
         }
@@ -392,13 +395,14 @@ namespace VariableMapper
                             while (bracketCounter != 0)
                             {
                                 line = sr.ReadLine();
-                                lineTrimmed = line.Trim();
-
-                                if (lineTrimmed == null)
+                                                                
+                                if (line == null)
                                 {
                                     endOfFileReached = true;
                                     break;
                                 }
+
+                                lineTrimmed = line.Trim();
 
                                 if (lineTrimmed.EndsWith("{"))
                                 {
